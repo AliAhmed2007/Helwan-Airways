@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+✈️ AeroBook: Modern Airline Flight & Reservation System
 
-## Getting Started
+A production-grade, full-stack Next.js application for airline flight management and passenger ticketing. Built with a focus on clean architecture and a premium, minimalist (Apple-inspired) user experience.
 
-First, run the development server:
+This system provides a comprehensive three-sided portal serving Customers, Operations Staff, and System Administrators, handling everything from multi-passenger bookings to real-time flight dispatching.
+✨ Core Features
+🛂 Customer Portal (/customer)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+    Dynamic Flight Search: Query flights by departure/arrival hubs and dates.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+    Complex Booking Flow: Multi-step wizard supporting simultaneous multi-passenger ticketing.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    Interactive Seat Selection: Visual aircraft mapping to select available seats.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    Passenger Dashboard: Manage upcoming trips and access digital boarding passes.
 
-## Learn More
+🏢 Operations Dashboard (/staff)
 
-To learn more about Next.js, take a look at the following resources:
+    Real-Time Analytics: Visualize daily revenue, occupancy rates, and operational bottlenecks.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    Flight Dispatch & Status: Update flight statuses (Scheduled, Boarding, Delayed, Departed) seamlessly.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    Passenger Manifests: Manage gate check-ins, verify documentation, and process baggage weights.
 
-## Deploy on Vercel
+🛠️ Tech Stack & Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project leverages the modern React ecosystem with strict end-to-end type safety:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    Framework: Next.js 14+ (App Router, Server Actions, Server Components)
+
+    Language: TypeScript
+
+    Database: MySQL (Relational architecture for robust data integrity)
+
+    Authentication: Clerk (Role-Based Access Control for Customers vs. Staff)
+
+    Styling: Tailwind CSS + Shadcn UI (Monochromatic, high-contrast, ample whitespace)
+
+    State & Validation: React Hook Form heavily integrated with Zod schemas
+
+    Data Visualization: Recharts
+
+    Animations: Framer Motion (Smooth, native-feeling micro-interactions)
+
+🚀 Getting Started
+Prerequisites
+
+    Node.js 18+
+
+    A running MySQL instance
+
+    A  account for authentication
+
+Installation
+
+    Clone the repository
+
+    Install dependencies
+
+    Environment Setup
+    Create a .env.local file in the root directory and add your keys:
+
+    Initialize the Database
+    Run the provided SQL seed scripts located in the /prisma or /db folder to populate the independent infrastructure (Airports, Aircrafts).
+
+    Start the Development Server
+
+    Navigate to http://localhost:3000 to view the application.
+
+📐 Design Philosophy
+
+The UI is strictly engineered to feel native and premium. We prioritize stark contrast, soft border radii, and generous whitespace over heavy drop shadows and borders. All data mutations provide immediate feedback via toast notifications and optimistic UI updates.
