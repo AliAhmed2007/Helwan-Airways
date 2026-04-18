@@ -22,7 +22,7 @@ export async function checkInPassenger(input: CheckInValues) {
 
   const parsed = CheckInSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false as const, error: parsed.error.errors[0].message };
+    return { success: false as const, error: parsed.error.issues[0].message };
   }
 
   const passenger = await prisma.bookingPassenger.update({
@@ -84,7 +84,7 @@ export async function updateBaggageWeight(input: BaggageWeightValues) {
 
   const parsed = BaggageWeightSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false as const, error: parsed.error.errors[0].message };
+    return { success: false as const, error: parsed.error.issues[0].message };
   }
 
   const passenger = await prisma.bookingPassenger.update({

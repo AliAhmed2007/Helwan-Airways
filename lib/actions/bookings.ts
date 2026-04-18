@@ -32,7 +32,7 @@ export async function createBooking(
   if (!parsed.success) {
     return {
       success: false as const,
-      error: parsed.error.errors[0].message,
+      error: parsed.error.issues[0].message,
     };
   }
 

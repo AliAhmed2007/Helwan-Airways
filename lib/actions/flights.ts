@@ -42,7 +42,7 @@ export async function searchFlights(input: FlightSearchValues) {
       arrivalAirport: true,
       seats: {
         where: { status: "AVAILABLE" },
-        select: { id: true },
+        select: { id: true, status: true },
       },
       _count: {
         select: { seats: true },
@@ -124,7 +124,7 @@ export async function updateFlightStatus(input: FlightStatusUpdateValues) {
 
   const parsed = FlightStatusUpdateSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false as const, error: parsed.error.errors[0].message };
+    return { success: false as const, error: parsed.error.issues[0].message };
   }
 
   const { flightId, status, gate, terminal } = parsed.data;

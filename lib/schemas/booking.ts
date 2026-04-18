@@ -84,9 +84,7 @@ export const BaggagePassengerSchema = z.object({
 export const BaggageStepSchema = z.object({
   baggageInfo: z.array(BaggagePassengerSchema),
   agreeToTerms: z.literal(true, {
-    errorMap: () => ({
-      message: "You must agree to the terms and conditions to proceed",
-    }),
+    message: "You must agree to the terms and conditions to proceed",
   }),
 });
 
