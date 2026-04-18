@@ -1,0 +1,170 @@
+// Helwan Airways — Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Airport
+// ─────────────────────────────────────────────────────────────────────────────
+model Airport {
+  id          String   @id @default(cuid())
+  iataCode    String   @unique @db.VarChar(3)
+  name        String
+  city        String
+  country     String
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now())
+
+  departingFlights Flight[] @relation("DepartureAirport")
+  arrivingFlights  Flight[] @relation("ArrivalAirport")
+
+  @@map("airports")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Flight
+// ─────────────────────────────────────────────────────────────────────────────
+enum FlightStatus {
+  SCHEDULED
+  BOARDING
+  DELAYED
+  DEPARTED
+  ARRIVED
+  CANCELLED
+}
+
+model Flight {
+  id                String       @id @default(cuid())
+  flightNumber      String       @unique
+  departureAirportId String
+  arrivalAirportId   String
+  departureTime     DateTime
+  arrivalTime       DateTime
+  status            FlightStatus @default(SCHEDULED)
+  aircraft          String       @default("Boeing 737-800")
+  totalSeats        Int          @default(180)
+  basePrice         Decimal      @db.Decimal(10, 2)
+  gate              String?
+  terminal          String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  departureAirport  Airport      @relation("DepartureAirport", fields: [departureAirportId], references: [id])
+  arrivalAirport    Airport      @relation("ArrivalAirport", fields: [arrivalAirportId], references: [id])
+  seats             Seat[]
+  bookings          Booking[]
+
+  @@index([departureAirportId])
+  @@index([arrivalAirportId])
+  @@index([departureTime])
+  @@map("flights")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Seat
+// ─────────────────────────────────────────────────────────────────────────────
+enum SeatClass {
+  FIRST
+  BUSINESS
+  ECONOMY
+}
+
+enum SeatStatus {
+  AVAILABLE
+  OCCUPIED
+  BLOCKED
+}
+
+model Seat {
+  id         String     @id @default(cuid())
+  flightId   String
+  seatNumber String     // e.g. "1A", "14C"
+  row        Int
+  column     String     @db.VarChar(1)
+  class      SeatClass  @default(ECONOMY)
+  status     SeatStatus @default(AVAILABLE)
+  extraPrice Decimal    @default(0) @db.Decimal(10, 2)
+
+  flight     Flight     @relation(fields: [flightId], references: [id], onDelete: Cascade)
+  passenger  BookingPassenger?
+
+  @@unique([flightId, seatNumber])
+  @@index([flightId])
+  @@map("seats")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Booking
+// ─────────────────────────────────────────────────────────────────────────────
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  clerkUserId String
+  flightId    String
+  status      BookingStatus @default(CONFIRMED)
+  totalPrice  Decimal       @db.Decimal(10, 2)
+  bookingRef  String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  flight      Flight        @relation(fields: [flightId], references: [id])
+  passengers  BookingPassenger[]
+
+  @@index([clerkUserId])
+  @@index([flightId])
+  @@map("bookings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BookingPassenger
+// ─────────────────────────────────────────────────────────────────────────────
+enum CheckInStatus {
+  NOT_CHECKED_IN
+  CHECKED_IN
+}
+
+enum MealPreference {
+  NONE
+  VEGETARIAN
+  VEGAN
+  HALAL
+  KOSHER
+}
+
+model BookingPassenger {
+  id              String         @id @default(cuid())
+  bookingId       String
+  seatId          String?        @unique
+  firstName       String
+  lastName        String
+  dateOfBirth     DateTime
+  passportNumber  String
+  nationality     String
+  email           String
+  phone           String
+  checkedBags     Int            @default(0)
+  baggageWeight   Decimal?       @db.Decimal(5, 2)
+  mealPreference  MealPreference @default(NONE)
+  checkInStatus   CheckInStatus  @default(NOT_CHECKED_IN)
+  boardingGroup   String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  booking         Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  seat            Seat?          @relation(fields: [seatId], references: [id])
+
+  @@index([bookingId])
+  @@map("booking_passengers")
+}
