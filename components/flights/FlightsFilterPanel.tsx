@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export type FlightFilters = {
   maxPrice: number;
@@ -14,7 +13,7 @@ export type FlightFilters = {
 };
 
 const DEFAULT_FILTERS: FlightFilters = {
-  maxPrice: 10000,
+  maxPrice: 3000,
   statuses: [],
   classes: [],
   sortBy: "departure_asc",
@@ -54,7 +53,7 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
   const activeFilterCount =
     filters.statuses.length +
     filters.classes.length +
-    (filters.maxPrice < 10000 ? 1 : 0);
+    (filters.maxPrice < 3000 ? 1 : 0);
 
   const reset = () => onChange(DEFAULT_FILTERS);
 
@@ -142,13 +141,13 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
               Max Price
             </p>
             <span className="text-sm font-semibold text-foreground">
-              {filters.maxPrice >= 10000 ? "Any" : `$${filters.maxPrice.toLocaleString()}`}
+              {filters.maxPrice >= 3000 ? "Any" : `$${filters.maxPrice.toLocaleString()}`}
             </span>
           </div>
           <input
             type="range"
             min={100}
-            max={10000}
+            max={3000}
             step={50}
             value={filters.maxPrice}
             onChange={(e) => onChange({ ...filters, maxPrice: Number(e.target.value) })}
@@ -156,7 +155,7 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
           />
           <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
             <span>$100</span>
-            <span>$10,000+</span>
+            <span>$3,000+</span>
           </div>
         </div>
 
