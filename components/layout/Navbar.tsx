@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { UserButton, SignInButton, useUser } from "@clerk/nextjs";
 import { Plane, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { FlightCommandSearch } from "./FlightCommandSearch";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,8 @@ function FlightSearchTrigger() {
 // ─── Navbar ─────────────────────────────────────────────────────────────────
 export function Navbar() {
   const pathname = usePathname();
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
+  const role = (user?.publicMetadata?.role as string) || "passenger";
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = NAV_LINKS.filter((l) => !l.requiresAuth || isSignedIn);
@@ -113,15 +115,20 @@ export function Navbar() {
             <FlightSearchTrigger />
             <DarkModeToggle />
             {isSignedIn ? (
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "h-8 w-8",
-                  },
-                }}
-              />
+              <div className="flex items-center gap-3 ml-2">
+                <Badge variant={role === "staff" ? "default" : "secondary"} className={cn("hidden sm:inline-flex h-6 text-[10px] uppercase tracking-wider font-semibold rounded-full px-2.5", role === "staff" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground border-border/50")}>
+                  {role === "staff" ? "Staff" : "Passenger"}
+                </Badge>
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-8 w-8",
+                    },
+                  }}
+                />
+              </div>
             ) : (
-              <SignInButton mode="modal">
+              <SignInButton mode="redirect">
                 <Button size="sm" className="rounded-full cursor-pointer">
                   Sign In
                 </Button>

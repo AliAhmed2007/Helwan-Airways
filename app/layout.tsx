@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthSync } from "@/components/auth/AuthSync";
 import "./globals.css";
 
 const inter = Inter({
@@ -46,6 +47,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider delay={300}>
+              <AuthSync />
               {children}
               <Toaster richColors position="top-right" />
             </TooltipProvider>

@@ -72,6 +72,10 @@ export function FlightCard({ flight, passengers, scheduleId, index = 0 }: Flight
 
   const dep = new Date(flight.departureDate ?? flight.schedDeparture);
   const arr = new Date(flight.schedArrival);
+  const availableEconomy = flight.aircraft.seats.filter((s) => s.class === "ECONOMY" && s.reservations.length === 0).length;
+  const availableBusiness = flight.aircraft.seats.filter((s) => s.class === "BUSINESS" && s.reservations.length === 0).length;
+  const availableFirst = flight.aircraft.seats.filter((s) => s.class === "FIRST" && s.reservations.length === 0).length;
+
   const availableSeats = flight.aircraft.seats.filter((s) => s.reservations.length === 0).length;
   const occupancyPct = Math.round(
     ((flight.aircraft.totalSeats - availableSeats) / flight.aircraft.totalSeats) * 100
@@ -200,14 +204,20 @@ export function FlightCard({ flight, passengers, scheduleId, index = 0 }: Flight
         className="overflow-hidden"
       >
         <div className="border-t border-border/50 px-5 sm:px-6 py-4 bg-muted/30">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground mb-1">Gate</div>
               <div className="font-medium">{flight.gate ?? "TBD"}</div>
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Available Seats</div>
-              <div className="font-medium">{availableSeats}</div>
+            <div className="col-span-2 sm:col-span-2">
+              <div className="text-xs text-muted-foreground mb-1">Seats Available (E / B / F)</div>
+              <div className="font-medium flex items-center gap-3">
+                <span>{availableEconomy}</span>
+                <span className="text-border/60">|</span>
+                <span>{availableBusiness}</span>
+                <span className="text-border/60">|</span>
+                <span>{availableFirst}</span>
+              </div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">Occupancy</div>

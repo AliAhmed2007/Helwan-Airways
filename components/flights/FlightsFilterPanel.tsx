@@ -10,6 +10,7 @@ export type FlightFilters = {
   statuses: string[];
   classes: string[];
   sortBy: "price_asc" | "price_desc" | "departure_asc" | "duration_asc";
+  selectableOnly: boolean;
 };
 
 const DEFAULT_FILTERS: FlightFilters = {
@@ -17,14 +18,12 @@ const DEFAULT_FILTERS: FlightFilters = {
   statuses: [],
   classes: [],
   sortBy: "departure_asc",
+  selectableOnly: false,
 };
 
 const STATUSES = [
   { value: "SCHEDULED", label: "Scheduled", color: "bg-green-500/15 text-green-600 border-green-500/30" },
-  { value: "BOARDING", label: "Boarding", color: "bg-blue-500/15 text-blue-600 border-blue-500/30" },
   { value: "DELAYED", label: "Delayed", color: "bg-amber-500/15 text-amber-600 border-amber-500/30" },
-  { value: "DEPARTED", label: "Departed", color: "bg-slate-500/15 text-slate-600 border-slate-500/30" },
-  { value: "ARRIVED", label: "Arrived", color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
 ];
 
 const CLASSES = [
@@ -53,7 +52,8 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
   const activeFilterCount =
     filters.statuses.length +
     filters.classes.length +
-    (filters.maxPrice < 3000 ? 1 : 0);
+    (filters.maxPrice < 3000 ? 1 : 0) +
+    (filters.selectableOnly ? 1 : 0);
 
   const reset = () => onChange(DEFAULT_FILTERS);
 
@@ -203,6 +203,28 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Availability */}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2.5">
+            Availability
+          </p>
+          <button
+            onClick={() => onChange({ ...filters, selectableOnly: !filters.selectableOnly })}
+            className={cn(
+              "text-xs px-3 py-2 rounded-xl border font-medium transition-all duration-150 w-full text-left flex items-center justify-between",
+              filters.selectableOnly
+                ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-inset ring-primary/30"
+                : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+            )}
+          >
+            Selectable Flights Only
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              filters.selectableOnly ? "bg-primary-foreground/80" : "bg-transparent"
+            )} />
+          </button>
         </div>
       </div>
     </motion.div>

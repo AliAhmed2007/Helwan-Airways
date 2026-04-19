@@ -184,6 +184,13 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
       result = result.filter((s) => Number(s.flight.basePrice) <= filters.maxPrice);
     }
 
+    if (filters.selectableOnly) {
+      result = result.filter((s) => {
+        const availableSeats = s.flight.aircraft.seats.filter((seat) => seat.reservations.length === 0).length;
+        return availableSeats >= passengers;
+      });
+    }
+
     result = [...result].sort((a, b) => {
       switch (filters.sortBy) {
         case "price_asc":

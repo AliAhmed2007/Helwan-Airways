@@ -1,0 +1,27 @@
+export const authAppearance = {
+  elements: {
+    card: "bg-background/80 backdrop-blur-3xl shadow-none border border-border/50 rounded-3xl",
+    headerTitle: "text-2xl font-bold tracking-tight text-foreground",
+    headerSubtitle: "text-sm text-muted-foreground mt-1",
+    socialButtonsBlockButton: "h-11 rounded-xl border border-border/50 bg-transparent text-foreground hover:bg-muted transition-colors font-medium shadow-sm",
+    socialButtonsBlockButtonText: "text-sm font-medium",
+    dividerLine: "bg-border/60",
+    dividerText: "text-xs text-muted-foreground",
+    formFieldLabel: "text-xs font-semibold text-foreground tracking-tight",
+    formFieldInput: "flex h-11 w-full rounded-xl border border-input bg-transparent px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50",
+    formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground h-11 w-full rounded-xl transition-all shadow-md font-semibold text-sm",
+    footerActionText: "text-sm text-muted-foreground",
+    footerActionLink: "text-sm text-primary hover:text-primary/90 font-semibold transition-colors",
+    identityPreviewText: "text-foreground font-medium",
+    identityPreviewEditButtonIcon: "text-muted-foreground hover:text-foreground",
+    otpCodeFieldInput: "border-border/50 rounded-xl",
+  },
+  variables: {
+    colorPrimary: "hsl(var(--primary))",
+    colorText: "hsl(var(--foreground))",
+    colorBackground: "hsl(var(--background))",
+    colorInputBackground: "transparent",
+    colorInputText: "hsl(var(--foreground))",
+    borderRadius: "0.75rem",
+  },
+};

@@ -332,7 +332,7 @@ async function main() {
   const staffMembers = await Promise.all([
     prisma.staff.create({ data: { firstName: "Mona",   lastName: "Saeed",   email: "mona.saeed@helwan.air",   role: "ADMIN",      department: "Operations", isActive: true } }),
     prisma.staff.create({ data: { firstName: "Tarek",  lastName: "Khalil",  email: "tarek.khalil@helwan.air", role: "MANAGER",    department: "Flight Ops", isActive: true } }),
-    prisma.staff.create({ data: { firstName: "Rania",  lastName: "Fawzy",   email: "rania.fawzy@helwan.air",  role: "AGENT",      department: "Reservations", isActive: true } }),
+    prisma.staff.create({ data: { firstName: "Rania",  lastName: "Fawzy",   email: "rania.fawzy@gmail.com",  role: "AGENT",      department: "Reservations", isActive: true } }),
     prisma.staff.create({ data: { firstName: "Karim",  lastName: "Hassan",  email: "karim.hassan@helwan.air", role: "GATE_AGENT", department: "Ground Ops", isActive: true } }),
     prisma.staff.create({ data: { firstName: "Layla",  lastName: "Mostafa", email: "layla.mostafa@helwan.air",role: "PILOT",      department: "Flight Crew", isActive: true } }),
     prisma.staff.create({ data: { firstName: "Hassan", lastName: "Omar",    email: "hassan.omar@helwan.air",  role: "CABIN_CREW", department: "Cabin Services", isActive: true } }),

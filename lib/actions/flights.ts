@@ -31,7 +31,7 @@ export async function searchFlights(input: FlightSearchValues) {
       scheduleStatus: { not: "CANCELLED" },
       departureDate: { gte: startOfDay, lte: endOfDay },
       flight: {
-        status: { not: "CANCELLED" },
+        status: { in: ["SCHEDULED", "DELAYED"] },
         depAirport: { iataCode: fromIata.toUpperCase() },
         arrAirport: { iataCode: toIata.toUpperCase() },
       },
@@ -78,7 +78,7 @@ export async function getAllPublicFlights() {
   const schedules = await prisma.flightSchedule.findMany({
     where: {
       scheduleStatus: { not: "CANCELLED" },
-      flight: { status: { not: "CANCELLED" } },
+      flight: { status: { in: ["SCHEDULED", "DELAYED"] } },
     },
     include: {
       flight: {
