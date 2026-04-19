@@ -47,6 +47,8 @@ export default function SignInPage() {
             path="/sign-in" 
             routing="path" 
             signUpUrl="/sign-up" 
+            fallbackRedirectUrl="/api/auth/sync"
+            forceRedirectUrl="/api/auth/sync"
           />
         </div>
 

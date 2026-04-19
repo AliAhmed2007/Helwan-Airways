@@ -39,7 +39,8 @@ export default function SignUpPage() {
             path="/sign-up" 
             routing="path" 
             signInUrl="/sign-in" 
-            unsafeMetadata={{ role: "passenger" }}
+            fallbackRedirectUrl="/api/auth/sync?role=passenger"
+            forceRedirectUrl="/api/auth/sync?role=passenger"
           />
           
           <div className="mt-12 text-center">

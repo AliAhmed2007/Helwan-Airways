@@ -11,10 +11,6 @@ const NAV_ITEMS = [
 ];
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  if (role !== "staff") redirect("/unauthorized");
 
   return (
     <div className="flex min-h-screen bg-background">

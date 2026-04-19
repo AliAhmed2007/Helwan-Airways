@@ -98,7 +98,7 @@ export async function POST(req: Request) {
     // Default to the explicitly requested role in unsafeMetadata
     const requestedRole = evt.data.unsafe_metadata?.role as string;
     let finalRole = "passenger";
-
+  
     if (requestedRole === "staff") {
        await prisma.staff.create({
          data: {
@@ -125,7 +125,6 @@ export async function POST(req: Request) {
     await client.users.updateUserMetadata(id, {
       publicMetadata: { role: finalRole },
     });
-
     return NextResponse.json({ success: true, role: finalRole });
   }
 

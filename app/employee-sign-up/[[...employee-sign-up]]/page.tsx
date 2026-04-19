@@ -37,7 +37,8 @@ export default function StaffSignUpPage() {
               path="/employee-sign-up"
               routing="path"
               signInUrl="/sign-in"
-              unsafeMetadata={{ role: "staff" }}
+              fallbackRedirectUrl="/api/auth/sync?role=staff"
+              forceRedirectUrl="/api/auth/sync?role=staff"
             />
           </div>
         </div>
