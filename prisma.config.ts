@@ -1,7 +1,6 @@
 // prisma.config.ts — Prisma v7 configuration
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { defineConfig } from "prisma/config";
 
 // Load .env.local (Next.js convention) for DATABASE_URL
 function loadEnvLocal() {
@@ -24,7 +23,7 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
-export default defineConfig({
+export default {
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
@@ -32,4 +31,4 @@ export default defineConfig({
   datasource: {
     url: process.env["DATABASE_URL"],
   },
-});
+};
