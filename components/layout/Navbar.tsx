@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, SignInButton, useUser } from "@clerk/nextjs";
-import { Plane, Menu, X } from "lucide-react";
+import { Plane, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DarkModeToggle } from "./DarkModeToggle";
+import { FlightCommandSearch } from "./FlightCommandSearch";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_LINKS = [
@@ -16,6 +17,58 @@ const NAV_LINKS = [
   { href: "/dashboard", label: "My Trips", requiresAuth: true },
 ];
 
+// ─── Search trigger pill ────────────────────────────────────────────────────
+function FlightSearchTrigger() {
+  const [open, setOpen] = useState(false);
+
+  // Global Ctrl+K / Cmd+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  return (
+    <>
+      <button
+        id="flight-search-trigger"
+        onClick={() => setOpen(true)}
+        aria-label="Search flights (Ctrl+K)"
+        className={cn(
+          "group hidden sm:flex items-center gap-2.5 rounded-full",
+          "border border-border/60 bg-muted/50 hover:bg-muted",
+          "px-3 py-1.5 text-sm text-muted-foreground",
+          "transition-all duration-200 hover:border-border hover:text-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        )}
+      >
+        <Search className="h-3.5 w-3.5" />
+        <span className="hidden lg:inline">Search flights</span>
+        <kbd className="hidden lg:flex items-center gap-px rounded border border-border/80 bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground group-hover:border-border transition-colors">
+          <span className="text-[9px]">⌃</span>K
+        </kbd>
+      </button>
+
+      {/* Mobile: icon-only trigger */}
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Search flights"
+        className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+      >
+        <Search className="h-4 w-4" />
+      </button>
+
+      <FlightCommandSearch open={open} onClose={() => setOpen(false)} />
+    </>
+  );
+}
+
+// ─── Navbar ─────────────────────────────────────────────────────────────────
 export function Navbar() {
   const pathname = usePathname();
   const { isSignedIn } = useUser();
@@ -24,7 +77,7 @@ export function Navbar() {
   const links = NAV_LINKS.filter((l) => !l.requiresAuth || isSignedIn);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -57,6 +110,7 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <FlightSearchTrigger />
             <DarkModeToggle />
             {isSignedIn ? (
               <UserButton
@@ -68,7 +122,7 @@ export function Navbar() {
               />
             ) : (
               <SignInButton mode="modal">
-                <Button size="sm" className="rounded-full">
+                <Button size="sm" className="rounded-full cursor-pointer">
                   Sign In
                 </Button>
               </SignInButton>

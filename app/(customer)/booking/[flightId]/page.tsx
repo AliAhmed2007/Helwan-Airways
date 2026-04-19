@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getFlightById } from "@/lib/actions/flights";
 import { BookingWizard } from "@/components/booking/BookingWizard";
 import { format } from "date-fns";
-import { Plane, Clock, MapPin } from "lucide-react";
+import { Plane } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ flightId: string }>;
@@ -12,9 +12,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { flightId } = await params;
-  return {
-    title: `Book Flight ${flightId}`,
-  };
+  return { title: `Book Flight — Helwan Airways` };
 }
 
 export default async function BookingPage({ params, searchParams }: PageProps) {
@@ -30,8 +28,9 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
 
   const flight = result.data;
 
-  const dep = new Date(flight.departureTime);
-  const arr = new Date(flight.arrivalTime);
+  // Use schedDeparture / schedArrival (current schema field names)
+  const dep = new Date(flight.schedDeparture);
+  const arr = new Date(flight.schedArrival);
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
@@ -44,15 +43,15 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
             </div>
             <div>
               <div className="font-mono font-bold">{flight.flightNumber}</div>
-              <div className="text-xs text-muted-foreground">{flight.aircraft}</div>
+              <div className="text-xs text-muted-foreground">{flight.aircraft.model}</div>
             </div>
           </div>
 
           <div className="flex-1 flex items-center gap-4">
             <div>
               <div className="text-2xl font-bold">{format(dep, "HH:mm")}</div>
-              <div className="text-sm font-mono text-muted-foreground">{flight.departureAirport.iataCode}</div>
-              <div className="text-xs text-muted-foreground">{flight.departureAirport.city}</div>
+              <div className="text-sm font-mono text-muted-foreground">{flight.depAirport.iataCode}</div>
+              <div className="text-xs text-muted-foreground">{flight.depAirport.city}</div>
             </div>
             <div className="flex-1 flex flex-col items-center">
               <div className="text-xs text-muted-foreground">{format(dep, "dd MMM yyyy")}</div>
@@ -61,8 +60,8 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold">{format(arr, "HH:mm")}</div>
-              <div className="text-sm font-mono text-muted-foreground">{flight.arrivalAirport.iataCode}</div>
-              <div className="text-xs text-muted-foreground">{flight.arrivalAirport.city}</div>
+              <div className="text-sm font-mono text-muted-foreground">{flight.arrAirport.iataCode}</div>
+              <div className="text-xs text-muted-foreground">{flight.arrAirport.city}</div>
             </div>
           </div>
 
@@ -77,11 +76,14 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
       {/* Booking Wizard */}
       <div className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8">
         <BookingWizard
-          flightId={flight.id}
+          flightId={flight.flightId}
           flightPrice={Number(flight.basePrice)}
-          seats={flight.seats.map((s) => ({
-            ...s,
+          seats={flight.aircraft.seats.map((s) => ({
+            seatId: s.seatId,
+            seatNumber: s.seatNumber,
+            class: s.class,
             extraPrice: Number(s.extraPrice),
+            isOccupied: s.reservations.length > 0,
           }))}
           passengerCount={passengerCount}
         />

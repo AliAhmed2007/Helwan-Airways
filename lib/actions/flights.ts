@@ -11,7 +11,7 @@ import {
 import { auth } from "@clerk/nextjs/server";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Search Flights (public)
+// Search Flights (public) — queries FlightSchedules for a specific date
 // ─────────────────────────────────────────────────────────────────────────────
 export async function searchFlights(input: FlightSearchValues) {
   const parsed = FlightSearchSchema.safeParse(input);
@@ -26,54 +26,121 @@ export async function searchFlights(input: FlightSearchValues) {
   const endOfDay = new Date(departureDate);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const flights = await prisma.flight.findMany({
+  const schedules = await prisma.flightSchedule.findMany({
     where: {
-      departureAirport: { iataCode: fromIata.toUpperCase() },
-      arrivalAirport: { iataCode: toIata.toUpperCase() },
-      departureTime: { gte: startOfDay, lte: endOfDay },
-      status: { not: "CANCELLED" },
-      // Ensure enough available seats
-      seats: {
-        some: { status: "AVAILABLE" },
+      scheduleStatus: { not: "CANCELLED" },
+      departureDate: { gte: startOfDay, lte: endOfDay },
+      flight: {
+        status: { not: "CANCELLED" },
+        depAirport: { iataCode: fromIata.toUpperCase() },
+        arrAirport: { iataCode: toIata.toUpperCase() },
       },
     },
     include: {
-      departureAirport: true,
-      arrivalAirport: true,
-      seats: {
-        where: { status: "AVAILABLE" },
-        select: { id: true, status: true },
-      },
-      _count: {
-        select: { seats: true },
+      flight: {
+        include: {
+          depAirport: true,
+          arrAirport: true,
+          aircraft: {
+            select: {
+              aircraftId: true,
+              model: true,
+              manufacturer: true,
+              totalSeats: true,
+              firstClassSeats: true,
+              businessSeats: true,
+              economySeats: true,
+              seats: {
+                select: {
+                  seatId: true,
+                  class: true,
+                  seatNumber: true,
+                  extraPrice: true,
+                  reservations: { select: { reservationId: true } },
+                },
+              },
+            },
+          },
+        },
       },
     },
-    orderBy: { departureTime: "asc" },
+    orderBy: { departureDate: "asc" },
   });
 
-  // Filter flights with enough seats for the passenger count
-  const available = flights.filter((f) => f.seats.length >= passengers);
-
-  return { success: true as const, data: available };
+  return { success: true as const, data: schedules };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Get Single Flight (public)
+// Get All Public Flights (no auth) — used by the customer /flights page
+// Returns all non-cancelled FlightSchedules ordered by departure date
 // ─────────────────────────────────────────────────────────────────────────────
-export async function getFlightById(id: string) {
-  const flight = await prisma.flight.findUnique({
-    where: { id },
+export async function getAllPublicFlights() {
+  const schedules = await prisma.flightSchedule.findMany({
+    where: {
+      scheduleStatus: { not: "CANCELLED" },
+      flight: { status: { not: "CANCELLED" } },
+    },
     include: {
-      departureAirport: true,
-      arrivalAirport: true,
-      seats: {
-        orderBy: [{ row: "asc" }, { column: "asc" }],
+      flight: {
+        include: {
+          depAirport: true,
+          arrAirport: true,
+          aircraft: {
+            select: {
+              aircraftId: true,
+              model: true,
+              manufacturer: true,
+              totalSeats: true,
+              firstClassSeats: true,
+              businessSeats: true,
+              economySeats: true,
+              seats: {
+                select: {
+                  seatId: true,
+                  class: true,
+                  seatNumber: true,
+                  extraPrice: true,
+                  reservations: { select: { reservationId: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { departureDate: "asc" },
+  });
+
+  return { success: true as const, data: schedules };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Get Single Flight with full detail (public) — by flightId
+// ─────────────────────────────────────────────────────────────────────────────
+export async function getFlightById(flightId: string) {
+  const flight = await prisma.flight.findUnique({
+    where: { flightId },
+    include: {
+      depAirport: true,
+      arrAirport: true,
+      aircraft: {
+        include: {
+          seats: {
+            orderBy: [{ class: "asc" }, { seatNumber: "asc" }],
+            include: {
+              reservations: {
+                where: { status: { not: "CANCELLED" } },
+                select: { reservationId: true, flightId: true },
+              },
+            },
+          },
+        },
+      },
+      schedules: {
+        orderBy: { departureDate: "asc" },
       },
       _count: {
-        select: {
-          bookings: true,
-          seats: { where: { status: "AVAILABLE" } },
-        },
+        select: { reservations: { where: { status: { not: "CANCELLED" } } } },
       },
     },
   });
@@ -97,26 +164,37 @@ export async function getAllFlights() {
 
   const flights = await prisma.flight.findMany({
     include: {
-      departureAirport: true,
-      arrivalAirport: true,
+      depAirport: true,
+      arrAirport: true,
+      aircraft: {
+        select: {
+          model: true,
+          manufacturer: true,
+          totalSeats: true,
+          registrationNum: true,
+        },
+      },
+      schedules: {
+        orderBy: { departureDate: "desc" },
+        take: 1,
+      },
       _count: {
         select: {
-          bookings: true,
-          seats: { where: { status: "OCCUPIED" } },
+          reservations: { where: { status: { not: "CANCELLED" } } },
         },
       },
     },
-    orderBy: { departureTime: "asc" },
+    orderBy: { schedDeparture: "asc" },
   });
 
   return { success: true as const, data: flights };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Update Flight Status (staff only)
+// Update Flight Status (staff only) — also logs to FlightStatusHistory
 // ─────────────────────────────────────────────────────────────────────────────
 export async function updateFlightStatus(input: FlightStatusUpdateValues) {
-  const { sessionClaims } = await auth();
+  const { sessionClaims, userId } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   if (role !== "staff") {
     return { success: false as const, error: "Unauthorized" };
@@ -129,13 +207,57 @@ export async function updateFlightStatus(input: FlightStatusUpdateValues) {
 
   const { flightId, status, gate, terminal } = parsed.data;
 
-  await prisma.flight.update({
-    where: { id: flightId },
-    data: {
-      status,
-      ...(gate && { gate }),
-      ...(terminal && { terminal }),
-    },
+  // Get old status for audit log
+  const existing = await prisma.flight.findUnique({
+    where: { flightId },
+    select: { status: true },
+  });
+
+  if (!existing) {
+    return { success: false as const, error: "Flight not found" };
+  }
+
+  // Find staff record linked to this Clerk user
+  const staffRecord = userId
+    ? await prisma.staff.findUnique({
+        where: { clerkUserId: userId },
+        select: { staffId: true },
+      })
+    : null;
+
+  await prisma.$transaction(async (tx) => {
+    // Update flight status
+    await tx.flight.update({
+      where: { flightId },
+      data: { status },
+    });
+
+    // Update the latest schedule's gate/terminal if provided
+    if (gate || terminal) {
+      const latestSchedule = await tx.flightSchedule.findFirst({
+        where: { flightId },
+        orderBy: { departureDate: "desc" },
+      });
+      if (latestSchedule) {
+        await tx.flightSchedule.update({
+          where: { scheduleId: latestSchedule.scheduleId },
+          data: {
+            ...(gate && { gate }),
+            ...(terminal && { terminal }),
+          },
+        });
+      }
+    }
+
+    // Log to FlightStatusHistory
+    await tx.flightStatusHistory.create({
+      data: {
+        flightId,
+        oldStatus: existing.status,
+        newStatus: status,
+        changedBy: staffRecord?.staffId ?? null,
+      },
+    });
   });
 
   revalidatePath("/staff/flights");
@@ -145,15 +267,15 @@ export async function updateFlightStatus(input: FlightStatusUpdateValues) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Get All Airports (for search widget autocomplete)
+// Get All Airports (public — for search widget autocomplete)
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getAirports() {
   const airports = await prisma.airport.findMany({
     orderBy: { city: "asc" },
     select: {
-      id: true,
+      airportId: true,
       iataCode: true,
-      name: true,
+      airportName: true,
       city: true,
       country: true,
     },

@@ -17,28 +17,34 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format, differenceInMinutes } from "date-fns";
 
-type Airport = { iataCode: string; city: string; name: string };
+type Airport = { iataCode: string; city: string; airportName: string };
 
-type Seat = { status: string };
+type Seat = { seatId: string; class: string; reservations: { reservationId: string }[] };
 
 type Flight = {
-  id: string;
+  flightId: string;
   flightNumber: string;
-  departureTime: Date | string;
-  arrivalTime: Date | string;
+  schedDeparture: Date | string;
+  schedArrival: Date | string;
   status: string;
   basePrice: number | string;
-  aircraft: string;
-  gate: string | null;
-  departureAirport: Airport;
-  arrivalAirport: Airport;
-  seats: Seat[];
-  _count: { seats: number };
+  depAirport: Airport;
+  arrAirport: Airport;
+  aircraft: {
+    model: string;
+    manufacturer: string;
+    totalSeats: number;
+    seats: Seat[];
+  };
+  // schedule-level override dates (from FlightSchedule)
+  departureDate?: Date | string;
+  gate?: string | null;
 };
 
 interface FlightCardProps {
   flight: Flight;
   passengers: number;
+  scheduleId?: string;
   index?: number;
 }
 
@@ -60,15 +66,15 @@ function formatDuration(depTime: Date | string, arrTime: Date | string): string 
   return `${h}h ${m}m`;
 }
 
-export function FlightCard({ flight, passengers, index = 0 }: FlightCardProps) {
+export function FlightCard({ flight, passengers, scheduleId, index = 0 }: FlightCardProps) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
 
-  const dep = new Date(flight.departureTime);
-  const arr = new Date(flight.arrivalTime);
-  const availableSeats = flight.seats.filter((s) => s.status === "AVAILABLE").length;
+  const dep = new Date(flight.departureDate ?? flight.schedDeparture);
+  const arr = new Date(flight.schedArrival);
+  const availableSeats = flight.aircraft.seats.filter((s) => s.reservations.length === 0).length;
   const occupancyPct = Math.round(
-    ((flight._count.seats - availableSeats) / flight._count.seats) * 100
+    ((flight.aircraft.totalSeats - availableSeats) / flight.aircraft.totalSeats) * 100
   );
   const status = STATUS_CONFIG[flight.status] ?? STATUS_CONFIG.SCHEDULED;
   const totalPrice = Number(flight.basePrice) * passengers;
@@ -91,7 +97,7 @@ export function FlightCard({ flight, passengers, index = 0 }: FlightCardProps) {
             </div>
             <div>
               <div className="font-mono font-semibold text-sm">{flight.flightNumber}</div>
-              <div className="text-xs text-muted-foreground">{flight.aircraft}</div>
+              <div className="text-xs text-muted-foreground">{flight.aircraft.model}</div>
             </div>
           </div>
 
@@ -103,10 +109,10 @@ export function FlightCard({ flight, passengers, index = 0 }: FlightCardProps) {
                 {format(dep, "HH:mm")}
               </div>
               <div className="text-xs text-muted-foreground font-mono">
-                {flight.departureAirport.iataCode}
+                {flight.depAirport.iataCode}
               </div>
               <div className="text-xs text-muted-foreground hidden sm:block">
-                {flight.departureAirport.city}
+                {flight.depAirport.city}
               </div>
             </div>
 
@@ -131,10 +137,10 @@ export function FlightCard({ flight, passengers, index = 0 }: FlightCardProps) {
                 {format(arr, "HH:mm")}
               </div>
               <div className="text-xs text-muted-foreground font-mono">
-                {flight.arrivalAirport.iataCode}
+                {flight.arrAirport.iataCode}
               </div>
               <div className="text-xs text-muted-foreground hidden sm:block">
-                {flight.arrivalAirport.city}
+                {flight.arrAirport.city}
               </div>
             </div>
           </div>
@@ -160,7 +166,7 @@ export function FlightCard({ flight, passengers, index = 0 }: FlightCardProps) {
               className="rounded-xl font-medium gap-1"
               onClick={() =>
                 router.push(
-                  `/booking/${flight.id}?passengers=${passengers}`
+                  `/booking/${flight.flightId}?passengers=${passengers}${scheduleId ? `&scheduleId=${scheduleId}` : ""}`
                 )
               }
               disabled={availableSeats < passengers || flight.status === "CANCELLED" || flight.status === "DEPARTED"}

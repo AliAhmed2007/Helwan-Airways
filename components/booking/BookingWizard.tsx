@@ -16,13 +16,11 @@ import { createBooking } from "@/lib/actions/bookings";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 type Seat = {
-  id: string;
+  seatId: string;
   seatNumber: string;
-  row: number;
-  column: string;
   class: "FIRST" | "BUSINESS" | "ECONOMY";
-  status: "AVAILABLE" | "OCCUPIED" | "BLOCKED";
-  extraPrice: number | string;
+  extraPrice: number;
+  isOccupied: boolean;
 };
 
 interface BookingWizardProps {
@@ -115,7 +113,7 @@ export function BookingWizard({
         description: `Your booking reference is ${result.data.bookingRef}`,
       });
 
-      router.push(`/dashboard?booking=${result.data.bookingId}`);
+      router.push(`/dashboard?booking=${result.data.reservationId}`);
     } catch {
       toast.dismiss(loadingToast);
       toast.error("An unexpected error occurred. Please try again.");
@@ -128,7 +126,7 @@ export function BookingWizard({
   const seatAssignments = watch("seatAssignments") ?? [];
   const seatExtras = seatAssignments.reduce((acc, assignment) => {
     if (!assignment.seatId) return acc;
-    const seat = seats.find((s) => s.id === assignment.seatId);
+    const seat = seats.find((s) => s.seatId === assignment.seatId);
     return acc + (seat ? Number(seat.extraPrice) : 0);
   }, 0);
 
@@ -154,7 +152,7 @@ export function BookingWizard({
             )}
             {step === 2 && (
               <SeatMap
-                seats={seats.filter((s) => s.status === "AVAILABLE" || s.status === "OCCUPIED")}
+                seats={seats}
                 form={form}
                 passengerCount={passengerCount}
               />

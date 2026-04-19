@@ -1,148 +1,131 @@
 import { Suspense } from "react";
-import { searchFlights, getAirports } from "@/lib/actions/flights";
-import { FlightCard } from "@/components/flights/FlightCard";
+import { getAllPublicFlights } from "@/lib/actions/flights";
 import { FlightSearchWidget } from "@/components/flights/FlightSearchWidget";
-import { Search, AlertCircle, Plane } from "lucide-react";
-
-interface SearchParams {
-  from?: string;
-  to?: string;
-  date?: string;
-  passengers?: string;
-  tripType?: string;
-}
+import { FlightsClient } from "@/components/flights/FlightsClient";
+import { Plane } from "lucide-react";
 
 export const metadata = {
-  title: "Search Flights",
+  title: "Search Flights — Helwan Airways",
   description: "Search and book available flights with Helwan Airways",
 };
 
-async function FlightResults({ searchParams }: { searchParams: SearchParams }) {
-  const { from, to, date, passengers = "1" } = searchParams;
+// Force dynamic so searchParams reflect navigation without caching issues
+export const dynamic = "force-dynamic";
 
-  if (!from || !to || !date) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Search className="h-7 w-7 text-muted-foreground" />
-        </div>
-        <h3 className="font-semibold text-lg mb-2">Search for Flights</h3>
-        <p className="text-muted-foreground text-sm max-w-sm">
-          Use the search form above to find available flights between your chosen destinations.
-        </p>
-      </div>
-    );
-  }
-
-  const result = await searchFlights({
-    fromIata: from,
-    toIata: to,
-    departureDate: date,
-    passengers: parseInt(passengers),
-    tripType: "one-way",
-  });
+async function FlightResultsSection() {
+  const result = await getAllPublicFlights();
 
   if (!result.success) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-          <AlertCircle className="h-7 w-7 text-destructive" />
+          <Plane className="h-7 w-7 text-destructive" />
         </div>
-        <h3 className="font-semibold text-lg mb-2">Something went wrong</h3>
-        <p className="text-muted-foreground text-sm">{result.error}</p>
+        <h3 className="font-semibold text-lg mb-2">Failed to load flights</h3>
+        <p className="text-muted-foreground text-sm">Please try refreshing the page.</p>
       </div>
     );
   }
 
-  const flights = result.data;
-
-  if (flights.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Plane className="h-7 w-7 text-muted-foreground" />
-        </div>
-        <h3 className="font-semibold text-lg mb-2">No Flights Found</h3>
-        <p className="text-muted-foreground text-sm max-w-sm">
-          No flights available from <strong>{from}</strong> to <strong>{to}</strong> on{" "}
-          <strong>{date}</strong>. Try a different date or route.
-        </p>
-      </div>
-    );
-  }
+  // Serialize Decimal → number and Date → string for the client
+  const schedules = result.data.map((s) => ({
+    ...s,
+    departureDate: s.departureDate instanceof Date ? s.departureDate.toISOString() : s.departureDate,
+    flight: {
+      ...s.flight,
+      basePrice: Number(s.flight.basePrice),
+      schedDeparture:
+        s.flight.schedDeparture instanceof Date
+          ? s.flight.schedDeparture.toISOString()
+          : s.flight.schedDeparture,
+      schedArrival:
+        s.flight.schedArrival instanceof Date
+          ? s.flight.schedArrival.toISOString()
+          : s.flight.schedArrival,
+      aircraft: {
+        ...s.flight.aircraft,
+        seats: s.flight.aircraft.seats.map((seat) => ({
+          ...seat,
+          extraPrice: Number(seat.extraPrice),
+        })),
+      },
+    },
+  }));
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{flights.length}</span>{" "}
-          flight{flights.length !== 1 ? "s" : ""} found
-        </p>
-        <p className="text-xs text-muted-foreground">Sorted by departure time</p>
-      </div>
-      {flights.map((flight, index) => (
-        <FlightCard
-          key={flight.id}
-          flight={{
-            ...flight,
-            basePrice: Number(flight.basePrice),
-          }}
-          passengers={parseInt(passengers)}
-          index={index}
-        />
-      ))}
-    </div>
+    <Suspense
+      fallback={
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-28 rounded-2xl bg-muted animate-pulse" />
+          ))}
+        </div>
+      }
+    >
+      <FlightsClient schedules={schedules} />
+    </Suspense>
   );
 }
 
-export default async function FlightsPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
-  const params = await searchParams;
-
+export default function FlightsPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Available Flights</h1>
-        {params.from && params.to && (
-          <p className="text-muted-foreground text-sm">
-            {params.from} → {params.to}
-            {params.date && (
-              <> · {new Date(params.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</>
-            )}
-          </p>
-        )}
-      </div>
+    <div className="flex flex-col">
+      {/* ─── Header Banner ─────────────────────────────────────── */}
+      <section className="relative border-b border-border/40 bg-gradient-to-br from-background via-background to-muted/30 overflow-hidden">
+        {/* Background grid */}
+        <div
+          className="absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
+          style={{
+            backgroundImage: `radial-gradient(circle, currentColor 1px, transparent 1px)`,
+            backgroundSize: "28px 28px",
+          }}
+        />
+        {/* Orbs */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-primary/3 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
-        {/* Sidebar: Search widget */}
-        <aside className="space-y-6">
-          <div className="rounded-2xl border border-border/50 bg-card p-5">
-            <h2 className="font-semibold text-sm mb-4">Modify Search</h2>
-            <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}>
-              <FlightSearchWidget />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div className="mb-8">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-1.5">
+              Helwan Airways
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
+              Available Flights
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-lg">
+              Browse all upcoming flights or use the search below to find specific routes. Filters update results instantly.
+            </p>
+          </div>
+
+          {/* Search widget */}
+          <div className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-5 sm:p-6 shadow-sm">
+            <h2 className="font-semibold text-sm mb-4 text-muted-foreground uppercase tracking-wide">
+              Search &amp; Filter
+            </h2>
+            <Suspense fallback={<div className="h-[200px] animate-pulse bg-muted rounded-xl" />}>
+              <FlightSearchWidget orientation="horizontal" />
             </Suspense>
           </div>
-        </aside>
+        </div>
+      </section>
 
-        {/* Results */}
-        <div>
-          <Suspense
-            fallback={
+      {/* ─── Results ────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+              <div className="h-[500px] rounded-2xl bg-muted animate-pulse" />
               <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="h-28 rounded-2xl bg-muted animate-pulse" />
                 ))}
               </div>
-            }
-          >
-            <FlightResults searchParams={params} />
-          </Suspense>
-        </div>
-      </div>
+            </div>
+          }
+        >
+          <FlightResultsSection />
+        </Suspense>
+      </section>
     </div>
   );
 }

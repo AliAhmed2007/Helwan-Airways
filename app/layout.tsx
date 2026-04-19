@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     "Book flights, manage reservations, and experience premium travel with Helwan Airways. Serving 150+ destinations worldwide.",
   keywords: ["airline", "flights", "booking", "travel", "Egypt", "Helwan Airways"],
   authors: [{ name: "Helwan Airways" }],
+};
+
+export const viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#09090b" },

@@ -25,24 +25,18 @@ export async function checkInPassenger(input: CheckInValues) {
     return { success: false as const, error: parsed.error.issues[0].message };
   }
 
-  const passenger = await prisma.bookingPassenger.update({
-    where: { id: parsed.data.bookingPassengerId },
+  const reservation = await prisma.reservation.update({
+    where: { reservationId: parsed.data.bookingPassengerId },
     data: {
       checkInStatus: "CHECKED_IN",
       ...(parsed.data.boardingGroup && {
         boardingGroup: parsed.data.boardingGroup,
       }),
     },
-    include: {
-      booking: {
-        select: { flightId: true },
-      },
-    },
+    select: { flightId: true },
   });
 
-  revalidatePath(
-    `/staff/flights/${passenger.booking.flightId}/manifest`
-  );
+  revalidatePath(`/staff/flights/${reservation.flightId}/manifest`);
 
   return { success: true as const };
 }
@@ -50,30 +44,26 @@ export async function checkInPassenger(input: CheckInValues) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Undo Check-In (staff only)
 // ─────────────────────────────────────────────────────────────────────────────
-export async function undoCheckIn(bookingPassengerId: string) {
+export async function undoCheckIn(reservationId: string) {
   const { sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   if (role !== "staff") {
     return { success: false as const, error: "Unauthorized" };
   }
 
-  const passenger = await prisma.bookingPassenger.update({
-    where: { id: bookingPassengerId },
+  const reservation = await prisma.reservation.update({
+    where: { reservationId },
     data: { checkInStatus: "NOT_CHECKED_IN", boardingGroup: null },
-    include: {
-      booking: { select: { flightId: true } },
-    },
+    select: { flightId: true },
   });
 
-  revalidatePath(
-    `/staff/flights/${passenger.booking.flightId}/manifest`
-  );
+  revalidatePath(`/staff/flights/${reservation.flightId}/manifest`);
 
   return { success: true as const };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Update Baggage Weight (staff only)
+// Update Baggage Weight (staff only) — updates first checked baggage record
 // ─────────────────────────────────────────────────────────────────────────────
 export async function updateBaggageWeight(input: BaggageWeightValues) {
   const { sessionClaims } = await auth();
@@ -87,17 +77,34 @@ export async function updateBaggageWeight(input: BaggageWeightValues) {
     return { success: false as const, error: parsed.error.issues[0].message };
   }
 
-  const passenger = await prisma.bookingPassenger.update({
-    where: { id: parsed.data.bookingPassengerId },
-    data: { baggageWeight: parsed.data.baggageWeight },
-    include: {
-      booking: { select: { flightId: true } },
-    },
+  // parsed.data.bookingPassengerId is now the reservationId
+  const reservation = await prisma.reservation.findUnique({
+    where: { reservationId: parsed.data.bookingPassengerId },
+    include: { baggage: { take: 1 } },
   });
 
-  revalidatePath(
-    `/staff/flights/${passenger.booking.flightId}/manifest`
-  );
+  if (!reservation) {
+    return { success: false as const, error: "Reservation not found" };
+  }
+
+  if (reservation.baggage[0]) {
+    await prisma.baggage.update({
+      where: { baggageId: reservation.baggage[0].baggageId },
+      data: { weightKg: parsed.data.baggageWeight },
+    });
+  } else {
+    // Auto-create a baggage entry if none exists
+    await prisma.baggage.create({
+      data: {
+        reservationId: parsed.data.bookingPassengerId,
+        baggageType: "CHECKED",
+        weightKg: parsed.data.baggageWeight,
+        fee: 25,
+      },
+    });
+  }
+
+  revalidatePath(`/staff/flights/${reservation.flightId}/manifest`);
 
   return { success: true as const };
 }
