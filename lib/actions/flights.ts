@@ -21,15 +21,19 @@ export async function searchFlights(input: FlightSearchValues) {
 
   const { fromIata, toIata, departureDate, passengers } = parsed.data;
 
-  const startOfDay = new Date(departureDate);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(departureDate);
-  endOfDay.setHours(23, 59, 59, 999);
+  let dateFilter = {};
+  if (departureDate) {
+    const startOfDay = new Date(departureDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(departureDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    dateFilter = { departureDate: { gte: startOfDay, lte: endOfDay } };
+  }
 
   const schedules = await prisma.flightSchedule.findMany({
     where: {
       scheduleStatus: { not: "CANCELLED" },
-      departureDate: { gte: startOfDay, lte: endOfDay },
+      ...dateFilter,
       flight: {
         status: { in: ["SCHEDULED", "DELAYED"] },
         depAirport: { iataCode: fromIata.toUpperCase() },
@@ -281,4 +285,82 @@ export async function getAirports() {
     },
   });
   return { success: true as const, data: airports };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Get Featured Destinations (public — for home page destination cards)
+// ─────────────────────────────────────────────────────────────────────────────
+export async function getFeaturedDestinations() {
+  // Fetch upcoming flights from CAI to discover real reachable destinations
+  const upcomingFlights = await prisma.flight.findMany({
+    where: {
+      depAirport: { iataCode: "CAI" },
+      schedDeparture: { gte: new Date() },
+      status: { in: ["SCHEDULED", "DELAYED"] },
+    },
+    include: {
+      arrAirport: true
+    },
+    orderBy: { basePrice: "asc" }
+  });
+
+  const uniqueCountries = new Set<string>();
+  const destinations = [];
+  
+  const gradients = [
+    { gradient: "from-blue-500/20 to-indigo-500/20", accent: "blue" },
+    { gradient: "from-amber-500/20 to-orange-500/20", accent: "amber" },
+    { gradient: "from-red-500/20 to-rose-500/20", accent: "red" },
+    { gradient: "from-emerald-500/20 to-teal-500/20", accent: "emerald" },
+    { gradient: "from-violet-500/20 to-purple-500/20", accent: "violet" },
+    { gradient: "from-sky-500/20 to-blue-500/20", accent: "sky" },
+    { gradient: "from-pink-500/20 to-rose-500/20", accent: "pink" },
+    { gradient: "from-yellow-500/20 to-amber-500/20", accent: "yellow" }
+  ];
+
+  let colorIdx = 0;
+
+  for (const flight of upcomingFlights) {
+      const airport = flight.arrAirport;
+      if (airport.iataCode === "CAI") continue; // should already be true, but just in case
+      if (uniqueCountries.has(airport.country)) continue;
+
+      uniqueCountries.add(airport.country);
+
+      let emoji = "🌍";
+      switch (airport.country) {
+          case "Egypt": emoji = "🇪🇬"; break;
+          case "UAE": emoji = "🇦🇪"; break;
+          case "United Kingdom": emoji = "🇬🇧"; break;
+          case "Turkey": emoji = "🇹🇷"; break;
+          case "France": emoji = "🇫🇷"; break;
+          case "USA": emoji = "🇺🇸"; break;
+          case "Qatar": emoji = "🇶🇦"; break;
+          case "Germany": emoji = "🇩🇪"; break;
+          case "Netherlands": emoji = "🇳🇱"; break;
+          case "Saudi Arabia": emoji = "🇸🇦"; break;
+          case "Spain": emoji = "🇪🇸"; break;
+          case "Japan": emoji = "🇯🇵"; break;
+          case "Kuwait": emoji = "🇰🇼"; break;
+          case "Oman": emoji = "🇴🇲"; break;
+          case "Bahrain": emoji = "🇧🇭"; break;
+          case "Italy": emoji = "🇮🇹"; break;
+          case "Greece": emoji = "🇬🇷"; break;
+      }
+
+      destinations.push({
+         city: airport.city,
+         country: airport.country,
+         iata: airport.iataCode,
+         price: `from $${Number(flight.basePrice)}`,
+         emoji,
+         gradient: gradients[colorIdx % gradients.length].gradient,
+         accent: gradients[colorIdx % gradients.length].accent
+      });
+      colorIdx++;
+
+      if (destinations.length >= 6) break;
+  }
+
+  return { success: true as const, data: destinations };
 }

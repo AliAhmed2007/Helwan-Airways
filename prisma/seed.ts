@@ -192,31 +192,6 @@ function buildFlightDefs(): FlightDef[] {
     { no: "HA508", from: "CAI", to: "RUH",  dayOffset: 21, depHour: 9,  durationH: 2.5, price: 385,  status: "SCHEDULED" },
     { no: "HA509", from: "CAI", to: "IST",  dayOffset: 28, depHour: 6,  durationH: 3,   price: 320,  status: "SCHEDULED" },
     { no: "HA510", from: "CAI", to: "ATH",  dayOffset: 28, depHour: 10, durationH: 2.5, price: 315,  status: "SCHEDULED" },
-
-    // ── PAST (ARRIVED / CANCELLED) ─────────────────────────────────────────
-    { no: "HA901", from: "CAI", to: "DXB",  dayOffset: -1,  depHour: 7,  durationH: 3.5, price: 410, status: "ARRIVED",  gate: "B10", terminal: "T1" },
-    { no: "HA902", from: "CAI", to: "LHR",  dayOffset: -1,  depHour: 9,  durationH: 6.5, price: 670, status: "ARRIVED",  gate: "A6",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner" },
-    { no: "HA903", from: "CAI", to: "IST",  dayOffset: -1,  depHour: 6,  durationH: 3,   price: 305, status: "ARRIVED",  gate: "B2",  terminal: "T1" },
-    { no: "HA904", from: "CAI", to: "CDG",  dayOffset: -2,  depHour: 11, durationH: 6,   price: 580, status: "ARRIVED",  gate: "A1",  terminal: "T2" },
-    { no: "HA905", from: "CAI", to: "DXB",  dayOffset: -2,  depHour: 14, durationH: 3.5, price: 415, status: "ARRIVED" },
-    { no: "HA906", from: "CAI", to: "JFK",  dayOffset: -3,  depHour: 3,  durationH: 11,  price: 940, status: "ARRIVED",  aircraftModel: "Boeing 777-300ER" },
-    { no: "HA907", from: "CAI", to: "FRA",  dayOffset: -3,  depHour: 9,  durationH: 5.5, price: 555, status: "ARRIVED" },
-    { no: "HA908", from: "CAI", to: "RUH",  dayOffset: -4,  depHour: 7,  durationH: 2.5, price: 375, status: "ARRIVED" },
-    { no: "HA909", from: "CAI", to: "DOH",  dayOffset: -4,  depHour: 14, durationH: 2,   price: 340, status: "ARRIVED" },
-    { no: "HA910", from: "CAI", to: "AMS",  dayOffset: -5,  depHour: 7,  durationH: 5.5, price: 535, status: "ARRIVED" },
-    { no: "HA911", from: "CAI", to: "HRG",  dayOffset: -5,  depHour: 6,  durationH: 1,   price: 100, status: "ARRIVED" },
-    { no: "HA912", from: "CAI", to: "SSH",  dayOffset: -5,  depHour: 8,  durationH: 1,   price: 115, status: "ARRIVED" },
-    { no: "HA913", from: "CAI", to: "LXR",  dayOffset: -6,  depHour: 8,  durationH: 1.5, price: 90,  status: "ARRIVED" },
-    { no: "HA914", from: "CAI", to: "MAD",  dayOffset: -6,  depHour: 13, durationH: 5,   price: 510, status: "ARRIVED" },
-    { no: "HA915", from: "CAI", to: "FCO",  dayOffset: -7,  depHour: 14, durationH: 4,   price: 450, status: "ARRIVED" },
-    { no: "HA916", from: "CAI", to: "IST",  dayOffset: -7,  depHour: 6,  durationH: 3,   price: 300, status: "ARRIVED" },
-    { no: "HA917", from: "CAI", to: "NRT",  dayOffset: -10, depHour: 2,  durationH: 10,  price: 1080, status: "ARRIVED", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA918", from: "CAI", to: "DXB",  dayOffset: -10, depHour: 7,  durationH: 3.5, price: 400, status: "ARRIVED" },
-    { no: "HA919", from: "CAI", to: "LHR",  dayOffset: -14, depHour: 9,  durationH: 6.5, price: 660, status: "ARRIVED", aircraftModel: "Boeing 787-9 Dreamliner" },
-    { no: "HA920", from: "CAI", to: "DXB",  dayOffset: -14, depHour: 7,  durationH: 3.5, price: 405, status: "ARRIVED" },
-    // Cancelled
-    { no: "HA998", from: "CAI", to: "JFK",  dayOffset: -3, depHour: 22, durationH: 11,  price: 945, status: "CANCELLED", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA999", from: "CAI", to: "LHR",  dayOffset: -7, depHour: 9,  durationH: 6.5, price: 675, status: "CANCELLED" },
   ];
 }
 
@@ -386,6 +361,7 @@ async function main() {
   type CreatedFlight = {
     flightId: string;
     flightNumber: string;
+    basePrice: any;
     status: FlightStatus;
     schedDeparture: Date;
     schedArrival: Date;

@@ -11,6 +11,7 @@ export type FlightFilters = {
   classes: string[];
   sortBy: "price_asc" | "price_desc" | "departure_asc" | "duration_asc";
   selectableOnly: boolean;
+  departureDate: string | null;
 };
 
 const DEFAULT_FILTERS: FlightFilters = {
@@ -19,6 +20,7 @@ const DEFAULT_FILTERS: FlightFilters = {
   classes: [],
   sortBy: "departure_asc",
   selectableOnly: false,
+  departureDate: null,
 };
 
 const STATUSES = [
@@ -42,20 +44,28 @@ const SORT_OPTIONS = [
 interface FlightsFilterPanelProps {
   filters: FlightFilters;
   onChange: (f: FlightFilters) => void;
+  onReset?: () => void;
   totalCount: number;
   filteredCount: number;
+  hasSearch?: boolean;
 }
 
 export { DEFAULT_FILTERS };
 
-export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCount }: FlightsFilterPanelProps) {
+export function FlightsFilterPanel({ filters, onChange, onReset, totalCount, filteredCount, hasSearch }: FlightsFilterPanelProps) {
   const activeFilterCount =
     filters.statuses.length +
     filters.classes.length +
     (filters.maxPrice < 3000 ? 1 : 0) +
-    (filters.selectableOnly ? 1 : 0);
+    (filters.selectableOnly ? 1 : 0) +
+    (filters.departureDate ? 1 : 0);
 
-  const reset = () => onChange(DEFAULT_FILTERS);
+  const showReset = activeFilterCount > 0 || hasSearch;
+
+  const reset = () => {
+    if (onReset) onReset();
+    else onChange(DEFAULT_FILTERS);
+  };
 
   const toggleStatus = (v: string) =>
     onChange({
@@ -91,7 +101,7 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
             </Badge>
           )}
         </div>
-        {activeFilterCount > 0 && (
+        {showReset && (
           <button
             onClick={reset}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
@@ -132,6 +142,19 @@ export function FlightsFilterPanel({ filters, onChange, totalCount, filteredCoun
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Departure Date */}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2.5">
+            Departure Date
+          </p>
+          <input
+            type="date"
+            className="w-full text-sm px-3 py-2 rounded-xl border border-border/50 bg-background text-foreground transition-all duration-150 outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+            value={filters.departureDate || ""}
+            onChange={(e) => onChange({ ...filters, departureDate: e.target.value || null })}
+          />
         </div>
 
         {/* Max Price */}

@@ -22,11 +22,11 @@ export default async function StaffDashboardPage() {
   const flights = result.success ? result.data : [];
 
   const todayFlights = flights.filter(
-    (f) => new Date(f.departureTime).toDateString() === new Date().toDateString()
+    (f) => new Date(f.schedDeparture).toDateString() === new Date().toDateString()
   );
   const delayedFlights = flights.filter((f) => f.status === "DELAYED").length;
   const totalPassengersToday = todayFlights.reduce(
-    (acc, f) => acc + f._count.bookings,
+    (acc, f) => acc + f._count.reservations,
     0
   );
   const onTimeFlights = todayFlights.filter(
@@ -133,20 +133,20 @@ export default async function StaffDashboardPage() {
             ) : (
               todayFlights.map((flight) => (
                 <a
-                  key={flight.id}
-                  href={`/staff/flights/${flight.id}/manifest`}
+                  key={flight.flightId}
+                  href={`/staff/flights/${flight.flightId}/manifest`}
                   className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-2.5">
                     <Plane className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="font-mono text-sm font-semibold">{flight.flightNumber}</span>
                     <span className="text-xs text-muted-foreground">
-                      {flight.departureAirport.iataCode}→{flight.arrivalAirport.iataCode}
+                      {flight.depAirport.iataCode}→{flight.arrAirport.iataCode}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(flight.departureTime), "HH:mm")}
+                      {format(new Date(flight.schedDeparture), "HH:mm")}
                     </span>
                     <span
                       className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${

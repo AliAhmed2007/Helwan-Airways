@@ -28,10 +28,15 @@ export default async function StaffFlightsPage() {
       <FlightsTable
         flights={flights.map((f) => ({
           ...f,
-          departureTime: f.departureTime.toISOString(),
-          arrivalTime: f.arrivalTime.toISOString(),
+          id: f.flightId,
+          departureTime: f.schedDeparture.toISOString(),
+          arrivalTime: f.schedArrival.toISOString(),
+          departureAirport: f.depAirport,
+          arrivalAirport: f.arrAirport,
+          gate: f.schedules?.[0]?.gate ?? "TBD",
+          totalSeats: f.aircraft.totalSeats,
           _count: {
-            bookings: f._count.bookings ?? 0,
+            bookings: f._count.reservations ?? 0,
           },
         }))}
       />

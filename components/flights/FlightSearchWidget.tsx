@@ -110,8 +110,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
         a.iataCode.toLowerCase().includes(fromQuery.toLowerCase()) ||
         a.airportName.toLowerCase().includes(fromQuery.toLowerCase())
     )
-    .filter((a) => !selectedFrom || a.iataCode !== selectedFrom.iataCode)
-    .slice(0, 6);
+    .filter((a) => !selectedFrom || a.iataCode !== selectedFrom.iataCode);
 
   const filteredTo = airports
     .filter(
@@ -120,8 +119,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
         a.iataCode.toLowerCase().includes(toQuery.toLowerCase()) ||
         a.airportName.toLowerCase().includes(toQuery.toLowerCase())
     )
-    .filter((a) => !selectedTo || a.iataCode !== selectedTo.iataCode)
-    .slice(0, 6);
+    .filter((a) => !selectedTo || a.iataCode !== selectedTo.iataCode);
 
   const selectFrom = (airport: Airport) => {
     setSelectedFrom(airport);
@@ -156,10 +154,8 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
     const params = new URLSearchParams({
       from: data.fromIata,
       to: data.toIata,
-      date: data.departureDate,
       passengers: String(data.passengers),
       tripType: data.tripType,
-      ...(data.returnDate ? { returnDate: data.returnDate } : {}),
     });
     router.push(`/flights?${params.toString()}`);
   };
@@ -179,8 +175,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
           initial={{ opacity: 0, y: -4, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
-          className="absolute top-full left-0 right-0 z-50 mt-1.5 rounded-xl border border-border/60 bg-popover shadow-xl overflow-hidden"
+          className="absolute top-full left-0 right-0 z-50 mt-1.5 rounded-xl border border-border/60 bg-popover shadow-xl max-h-64 overflow-y-auto overflow-x-hidden"
         >
           {items.map((airport) => (
             <button
@@ -340,85 +335,13 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
         </div>
       </div>
 
-      {/* Dates & Passengers Layout */}
+      {/* Passengers Layout */}
       <div
         className={cn(
           "grid gap-3 pt-2",
-          isVertical ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-3"
+          isVertical ? "grid-cols-1" : "grid-cols-1"
         )}
       >
-        {/* Departure Date */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block uppercase tracking-wide">
-            Departure
-          </Label>
-          <Controller
-            control={control}
-            name="departureDate"
-            render={({ field }) => (
-              <Popover>
-                <PopoverTrigger
-                  className={cn(
-                    "w-full flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm text-left bg-background",
-                    errors.departureDate
-                      ? "border-destructive"
-                      : "border-border/60 hover:border-primary/50"
-                  )}
-                >
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className={!field.value ? "text-muted-foreground" : ""}>
-                    {field.value ? format(new Date(field.value), "dd MMM yyyy") : "Select date"}
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
-          />
-        </div>
-
-        {/* Return Date */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block uppercase tracking-wide">
-            Return
-          </Label>
-          <Controller
-            control={control}
-            name="returnDate"
-            render={({ field }) => (
-              <Popover>
-                <PopoverTrigger
-                  disabled={tripType === "one-way"}
-                  className={cn(
-                    "w-full flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm text-left bg-background transition-all",
-                    tripType === "one-way"
-                      ? "opacity-40 cursor-not-allowed border-border/40"
-                      : "border-border/60 hover:border-primary/50"
-                  )}
-                >
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className={!field.value ? "text-muted-foreground" : ""}>
-                    {field.value ? format(new Date(field.value), "dd MMM yyyy") : "Select date"}
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
-          />
-        </div>
 
         {/* Passengers */}
         <div>

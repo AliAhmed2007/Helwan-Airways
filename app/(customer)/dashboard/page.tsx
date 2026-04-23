@@ -30,10 +30,10 @@ export default async function DashboardPage() {
   const bookings = result.success ? result.data : [];
 
   const upcomingBookings = bookings.filter((b) =>
-    isFuture(new Date(b.flight.departureTime)) && b.status !== "CANCELLED"
+    isFuture(new Date(b.flight.schedDeparture)) && b.status !== "CANCELLED"
   );
   const pastBookings = bookings.filter((b) =>
-    isPast(new Date(b.flight.departureTime)) || b.status === "CANCELLED"
+    isPast(new Date(b.flight.schedDeparture)) || b.status === "CANCELLED"
   );
 
   const EmptyState = ({ label }: { label: string }) => (
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
             <div className="space-y-6">
               {upcomingBookings.map((booking) => {
                 const flight = booking.flight;
-                const dep = new Date(flight.departureTime);
+                const dep = new Date(flight.schedDeparture);
                 const status = STATUS_CONFIG[flight.status] ?? STATUS_CONFIG.SCHEDULED;
 
                 return (
@@ -110,7 +110,7 @@ export default async function DashboardPage() {
                             {status.label}
                           </Badge>
                           <div className="text-right">
-                            <div className="font-semibold">${Number(booking.totalPrice).toLocaleString()}</div>
+                            <div className="font-semibold">${Number(booking.totalPrice || 0).toLocaleString()}</div>
                             <div className="text-xs text-muted-foreground">Total paid</div>
                           </div>
                         </div>
@@ -120,8 +120,8 @@ export default async function DashboardPage() {
                       <div className="flex items-center gap-4 mb-5">
                         <div>
                           <div className="text-3xl font-bold">{format(dep, "HH:mm")}</div>
-                          <div className="font-mono text-muted-foreground">{flight.departureAirport.iataCode}</div>
-                          <div className="text-xs text-muted-foreground">{flight.departureAirport.city}</div>
+                          <div className="font-mono text-muted-foreground">{flight.depAirport.iataCode}</div>
+                          <div className="text-xs text-muted-foreground">{flight.depAirport.city}</div>
                         </div>
                         <div className="flex-1 flex flex-col items-center text-muted-foreground">
                           <div className="w-full flex items-center gap-2">
@@ -133,18 +133,18 @@ export default async function DashboardPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-3xl font-bold">
-                            {format(new Date(flight.arrivalTime), "HH:mm")}
+                            {format(new Date(flight.schedArrival), "HH:mm")}
                           </div>
-                          <div className="font-mono text-muted-foreground">{flight.arrivalAirport.iataCode}</div>
-                          <div className="text-xs text-muted-foreground">{flight.arrivalAirport.city}</div>
+                          <div className="font-mono text-muted-foreground">{flight.arrAirport.iataCode}</div>
+                          <div className="text-xs text-muted-foreground">{flight.arrAirport.city}</div>
                         </div>
                       </div>
 
-                      {flight.gate && (
+                      {flight.schedules?.[0]?.gate && (
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1.5">
                             <MapPin className="h-3.5 w-3.5" />
-                            Gate {flight.gate}
+                            Gate {flight.schedules[0].gate}
                           </div>
                         </div>
                       )}
@@ -162,14 +162,14 @@ export default async function DashboardPage() {
                               bookingRef: booking.bookingRef,
                               passengerName: `${passenger.firstName} ${passenger.lastName}`,
                               flightNumber: flight.flightNumber,
-                              departureAirport: flight.departureAirport,
-                              arrivalAirport: flight.arrivalAirport,
-                              departureTime: flight.departureTime,
-                              arrivalTime: flight.arrivalTime,
-                              seatNumber: passenger.seat?.seatNumber ?? "—",
-                              seatClass: passenger.seat?.class ?? "ECONOMY",
-                              gate: flight.gate,
-                              boardingGroup: passenger.boardingGroup,
+                              departureAirport: flight.depAirport,
+                              arrivalAirport: flight.arrAirport,
+                              departureTime: flight.schedDeparture,
+                              arrivalTime: flight.schedArrival,
+                              seatNumber: passenger.seatNumber ?? "—",
+                              seatClass: "ECONOMY",
+                              gate: flight.schedules?.[0]?.gate,
+                              boardingGroup: passenger.boardingGroup ?? "A",
                               checkInStatus: passenger.checkInStatus,
                             }}
                           />
@@ -190,7 +190,7 @@ export default async function DashboardPage() {
             <div className="space-y-4">
               {pastBookings.map((booking) => {
                 const flight = booking.flight;
-                const dep = new Date(flight.departureTime);
+                const dep = new Date(flight.schedDeparture);
                 const status = STATUS_CONFIG[flight.status] ?? STATUS_CONFIG.ARRIVED;
 
                 return (
@@ -209,7 +209,7 @@ export default async function DashboardPage() {
                         </div>
                       </div>
                       <div className="text-sm text-muted-foreground text-center hidden sm:block">
-                        {flight.departureAirport.iataCode} → {flight.arrivalAirport.iataCode}
+                        {flight.depAirport.iataCode} → {flight.arrAirport.iataCode}
                         <div className="text-xs">{format(dep, "dd MMM yyyy")}</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export default async function DashboardPage() {
                           {status.label}
                         </Badge>
                         <div className="text-right">
-                          <div className="font-semibold text-sm">${Number(booking.totalPrice).toLocaleString()}</div>
+                          <div className="font-semibold text-sm">${Number(booking.totalPrice || 0).toLocaleString()}</div>
                         </div>
                       </div>
                     </div>

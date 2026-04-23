@@ -12,7 +12,7 @@ export const FlightSearchSchema = z.object({
     .string()
     .length(3, "Please select an arrival airport")
     .toUpperCase(),
-  departureDate: z.string().min(1, "Please select a departure date"),
+  departureDate: z.string().optional(),
   returnDate: z.string().optional(),
   passengers: z
     .number()

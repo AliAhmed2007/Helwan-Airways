@@ -39,8 +39,8 @@ export default async function ManifestPage({ params }: PageProps) {
   const flight = flightResult.data;
   const passengers = manifestResult.success ? manifestResult.data : [];
 
-  const dep = new Date(flight.departureTime);
-  const arr = new Date(flight.arrivalTime);
+  const dep = new Date(flight.schedDeparture);
+  const arr = new Date(flight.schedArrival);
   const status = STATUS_CONFIG[flight.status] ?? STATUS_CONFIG.SCHEDULED;
   const checkedInCount = passengers.filter((p) => p.checkInStatus === "CHECKED_IN").length;
 
@@ -68,7 +68,7 @@ export default async function ManifestPage({ params }: PageProps) {
                   {status.label}
                 </Badge>
               </div>
-              <div className="text-sm text-muted-foreground mt-0.5">{flight.aircraft}</div>
+              <div className="text-sm text-muted-foreground mt-0.5">{flight.aircraft.model}</div>
             </div>
           </div>
 
@@ -76,8 +76,8 @@ export default async function ManifestPage({ params }: PageProps) {
           <div className="flex items-center gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold">{format(dep, "HH:mm")}</div>
-              <div className="font-mono text-muted-foreground text-sm">{flight.departureAirport.iataCode}</div>
-              <div className="text-xs text-muted-foreground">{flight.departureAirport.city}</div>
+              <div className="font-mono text-muted-foreground text-sm">{flight.depAirport.iataCode}</div>
+              <div className="text-xs text-muted-foreground">{flight.depAirport.city}</div>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <div className="h-px w-8 bg-border" />
@@ -86,8 +86,8 @@ export default async function ManifestPage({ params }: PageProps) {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">{format(arr, "HH:mm")}</div>
-              <div className="font-mono text-muted-foreground text-sm">{flight.arrivalAirport.iataCode}</div>
-              <div className="text-xs text-muted-foreground">{flight.arrivalAirport.city}</div>
+              <div className="font-mono text-muted-foreground text-sm">{flight.arrAirport.iataCode}</div>
+              <div className="text-xs text-muted-foreground">{flight.arrAirport.city}</div>
             </div>
           </div>
 
@@ -112,9 +112,9 @@ export default async function ManifestPage({ params }: PageProps) {
           </div>
         </div>
 
-        {flight.gate && (
+        {flight.schedules?.[0]?.gate && (
           <div className="mt-4 text-sm text-muted-foreground flex items-center gap-2">
-            <span className="font-medium text-foreground">Gate {flight.gate}</span>
+            <span className="font-medium text-foreground">Gate {flight.schedules[0].gate}</span>
             <span>·</span>
             <span>Terminal 1</span>
             <span>·</span>
@@ -141,12 +141,14 @@ export default async function ManifestPage({ params }: PageProps) {
       <ManifestTable
         passengers={passengers.map((p) => ({
           ...p,
-          baggageWeight: p.baggageWeight ? Number(p.baggageWeight) : null,
+          id: p.reservationId,
+          seatId: p.seatNumber,
+          checkedBags: p.totalBaggageWeight > 0 ? 1 : 0,
+          mealPreference: "Standard",
+          baggageWeight: p.totalBaggageWeight,
           checkInStatus: p.checkInStatus as "NOT_CHECKED_IN" | "CHECKED_IN",
-          seat: p.seat ? {
-            ...p.seat,
-            class: p.seat.class as string,
-          } : null,
+          boardingGroup: p.boardingGroup ?? "A",
+          seat: p.seatNumber ? { class: "ECONOMY" } : null,
         }))}
       />
     </div>

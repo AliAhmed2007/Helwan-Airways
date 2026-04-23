@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { differenceInMinutes } from "date-fns";
+import { differenceInMinutes, format } from "date-fns";
 import { Plane, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { FlightCard } from "@/components/flights/FlightCard";
 import { FlightsFilterPanel, DEFAULT_FILTERS, type FlightFilters } from "@/components/flights/FlightsFilterPanel";
@@ -141,6 +141,7 @@ function PaginationBar({
 // ─── Main component ──────────────────────────────────────────────────────────
 export function FlightsClient({ schedules }: FlightsClientProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [filters, setFilters] = useState<FlightFilters>(DEFAULT_FILTERS);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [page, setPage] = useState(1);
@@ -148,10 +149,9 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
   // Read search params
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
-  const date = searchParams.get("date") ?? "";
   const passengersStr = searchParams.get("passengers") ?? "1";
   const passengers = parseInt(passengersStr);
-  const hasSearch = !!(from && to && date);
+  const hasSearch = !!(from && to);
 
   // Filtered + sorted results
   const filtered = useMemo(() => {
@@ -161,10 +161,12 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
       result = result.filter((s) => {
         const depMatch = s.flight.depAirport.iataCode.toLowerCase() === from.toLowerCase();
         const arrMatch = s.flight.arrAirport.iataCode.toLowerCase() === to.toLowerCase();
-        const dateMatch =
-          new Date(s.departureDate).toDateString() === new Date(date).toDateString();
-        return depMatch && arrMatch && dateMatch;
+        return depMatch && arrMatch;
       });
+    }
+
+    if (filters.departureDate) {
+      result = result.filter((s) => format(new Date(s.departureDate), "yyyy-MM-dd") === filters.departureDate);
     }
 
     if (filters.statuses.length > 0) {
@@ -209,12 +211,19 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
     });
 
     return result;
-  }, [schedules, from, to, date, hasSearch, filters]);
+  }, [schedules, from, to, hasSearch, filters]);
 
   // Reset to page 1 whenever filters or search change
   useEffect(() => {
     setPage(1);
-  }, [filters, from, to, date]);
+  }, [filters, from, to]);
+
+  const handleReset = () => {
+    setFilters(DEFAULT_FILTERS);
+    if (hasSearch) {
+      router.push("/flights");
+    }
+  };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -232,8 +241,10 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
         <FlightsFilterPanel
           filters={filters}
           onChange={setFilters}
+          onReset={handleReset}
           totalCount={schedules.length}
           filteredCount={filtered.length}
+          hasSearch={hasSearch}
         />
       </aside>
 
@@ -290,7 +301,7 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
                 variant="outline"
                 size="sm"
                 className="mt-6 rounded-xl"
-                onClick={() => setFilters(DEFAULT_FILTERS)}
+                onClick={handleReset}
               >
                 <X className="h-3.5 w-3.5 mr-2" />
                 Reset Filters
@@ -354,8 +365,10 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
                 <FlightsFilterPanel
                   filters={filters}
                   onChange={setFilters}
+                  onReset={handleReset}
                   totalCount={schedules.length}
                   filteredCount={filtered.length}
+                  hasSearch={hasSearch}
                 />
               </div>
             </motion.div>

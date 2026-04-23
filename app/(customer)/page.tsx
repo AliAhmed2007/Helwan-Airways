@@ -1,20 +1,23 @@
 "use client";
 
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, useState, useEffect } from "react";
 import { FlightSearchWidget } from "@/components/flights/FlightSearchWidget";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import { Plane, Shield, Clock, Star } from "lucide-react";
+import { Plane, Shield, Clock, Star, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { format } from "date-fns";
+import { getFeaturedDestinations } from "@/lib/actions/flights";
 
-const DESTINATIONS = [
-  { city: "Dubai", country: "UAE", iata: "DXB", price: "from $420", emoji: "🇦🇪", gradient: "from-amber-500/20 to-orange-500/20", accent: "amber" },
-  { city: "London", country: "United Kingdom", iata: "LHR", price: "from $680", emoji: "🇬🇧", gradient: "from-blue-500/20 to-indigo-500/20", accent: "blue" },
-  { city: "Istanbul", country: "Turkey", iata: "IST", price: "from $310", emoji: "🇹🇷", gradient: "from-red-500/20 to-rose-500/20", accent: "red" },
-  { city: "Paris", country: "France", iata: "CDG", price: "from $590", emoji: "🇫🇷", gradient: "from-violet-500/20 to-purple-500/20", accent: "violet" },
-  { city: "New York", country: "USA", iata: "JFK", price: "from $950", emoji: "🇺🇸", gradient: "from-sky-500/20 to-blue-500/20", accent: "sky" },
-  { city: "Doha", country: "Qatar", iata: "DOH", price: "from $350", emoji: "🇶🇦", gradient: "from-emerald-500/20 to-teal-500/20", accent: "emerald" },
-];
+type Destination = {
+  city: string;
+  country: string;
+  iata: string;
+  price: string;
+  emoji: string;
+  gradient: string;
+  accent: string;
+};
 
 const STATS = [
   { value: "2M+", label: "Passengers Served", icon: Star },
@@ -67,36 +70,40 @@ function DestinationCard({
   dest,
   index,
 }: {
-  dest: (typeof DESTINATIONS)[number];
+  dest: Destination;
   index: number;
 }) {
-  const ref = useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-40px 0px" });
 
   return (
-    <motion.a
+    <motion.div
       ref={ref}
-      href={`/flights?to=${dest.iata}&from=CAI&date=${new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0]}&passengers=1&tripType=one-way`}
       initial={{ opacity: 0, y: 28 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.07, ease: [0.21, 0.47, 0.32, 0.98] }}
       whileHover={{ y: -4, transition: { duration: 0.2, ease: "easeOut" } }}
-      className={`group relative rounded-2xl bg-gradient-to-br ${dest.gradient} border border-border/50 p-6 hover:border-border transition-colors duration-300 hover:shadow-lg`}
+      className="block"
     >
-      <div className="flex items-start justify-between mb-6">
-        <span className="text-4xl">{dest.emoji}</span>
-        <span className="text-xs font-mono text-muted-foreground bg-background/60 rounded-full px-2 py-0.5">
-          {dest.iata}
-        </span>
-      </div>
-      <div>
-        <h3 className="font-semibold text-lg text-foreground">{dest.city}</h3>
-        <p className="text-sm text-muted-foreground">{dest.country}</p>
-        <p className="text-sm font-medium text-foreground mt-2 group-hover:underline">
-          {dest.price}
-        </p>
-      </div>
-    </motion.a>
+      <Link
+        href={`/flights?to=${dest.iata}&from=CAI&passengers=1&tripType=one-way`}
+        className={`group relative rounded-2xl bg-gradient-to-br ${dest.gradient} border border-border/50 p-6 hover:border-border transition-colors duration-300 hover:shadow-lg block h-full`}
+      >
+        <div className="flex items-start justify-between mb-6">
+          <span className="text-4xl">{dest.emoji}</span>
+          <span className="text-xs font-mono text-muted-foreground bg-background/60 rounded-full px-2 py-0.5">
+            {dest.iata}
+          </span>
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg text-foreground">{dest.city}</h3>
+          <p className="text-sm text-muted-foreground">{dest.country}</p>
+          <p className="text-sm font-medium text-foreground mt-2 group-hover:underline">
+            {dest.price}
+          </p>
+        </div>
+      </Link>
+    </motion.div>
   );
 }
 
@@ -239,6 +246,18 @@ function HeroSection() {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function HomePage() {
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(true);
+
+  useEffect(() => {
+    getFeaturedDestinations().then(res => {
+      if (res.success) {
+        setDestinations(res.data);
+      }
+      setLoadingDestinations(false);
+    });
+  }, []);
+
   return (
     <div className="flex flex-col">
       {/* Hero */}
@@ -272,11 +291,17 @@ export default function HomePage() {
           </Link>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {DESTINATIONS.map((dest, i) => (
-            <DestinationCard key={dest.iata} dest={dest} index={i} />
-          ))}
-        </div>
+        {loadingDestinations ? (
+           <div className="flex justify-center py-12">
+             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+           </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {destinations.map((dest, i) => (
+              <DestinationCard key={dest.iata} dest={dest} index={i} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Why Choose Us */}
