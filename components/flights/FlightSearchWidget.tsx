@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -24,7 +24,31 @@ interface FlightSearchWidgetProps {
 export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchWidgetProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const isVertical = orientation === "vertical";
+
+  const updateUrlParams = (updates: Record<string, string | null>) => {
+    if (pathname === "/flights") {
+      const params = new URLSearchParams(searchParams.toString());
+      let changed = false;
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null) {
+          if (params.has(key)) {
+            params.delete(key);
+            changed = true;
+          }
+        } else {
+          if (params.get(key) !== value) {
+            params.set(key, value);
+            changed = true;
+          }
+        }
+      });
+      if (changed) {
+        router.push(`/flights?${params.toString()}`, { scroll: false });
+      }
+    }
+  };
 
   const [airports, setAirports] = useState<Airport[]>([]);
   const [tripType, setTripType] = useState<"one-way" | "round-trip">("one-way");
@@ -50,44 +74,85 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
     defaultValues: { passengers: 1, tripType: "one-way" },
   });
 
-  // Load airports then pre-populate from URL params
+  // Load airports
   useEffect(() => {
     getAirports().then((res) => {
       if (res.success) {
         setAirports(res.data);
-
-        // Pre-populate from URL search params
-        const fromParam = searchParams.get("from");
-        const toParam = searchParams.get("to");
-        const dateParam = searchParams.get("date");
-        const passengersParam = searchParams.get("passengers");
-        const tripTypeParam = searchParams.get("tripType") as "one-way" | "round-trip" | null;
-
-        if (fromParam) {
-          const fromAirport = res.data.find((a) => a.iataCode === fromParam.toUpperCase());
-          if (fromAirport) {
-            setSelectedFrom(fromAirport);
-            setFromQuery(`${fromAirport.iataCode} — ${fromAirport.city}`);
-            setValue("fromIata", fromAirport.iataCode);
-          }
-        }
-        if (toParam) {
-          const toAirport = res.data.find((a) => a.iataCode === toParam.toUpperCase());
-          if (toAirport) {
-            setSelectedTo(toAirport);
-            setToQuery(`${toAirport.iataCode} — ${toAirport.city}`);
-            setValue("toIata", toAirport.iataCode);
-          }
-        }
-        if (dateParam) setValue("departureDate", dateParam);
-        if (passengersParam) setValue("passengers", parseInt(passengersParam));
-        if (tripTypeParam) {
-          setTripType(tripTypeParam);
-          setValue("tripType", tripTypeParam);
-        }
       }
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync from URL params whenever they or airports change
+  useEffect(() => {
+    if (airports.length === 0) return;
+
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+    const dateParam = searchParams.get("date");
+    const passengersParam = searchParams.get("passengers");
+    const tripTypeParam = searchParams.get("tripType") as "one-way" | "round-trip" | null;
+
+    if (fromParam) {
+      const fromAirport = airports.find((a) => a.iataCode === fromParam.toUpperCase());
+      if (fromAirport) {
+        setSelectedFrom((prev) => {
+          if (prev?.iataCode !== fromAirport.iataCode) {
+            setFromQuery(`${fromAirport.iataCode} — ${fromAirport.city}`);
+            setValue("fromIata", fromAirport.iataCode);
+            return fromAirport;
+          }
+          return prev;
+        });
+      }
+    } else {
+      setSelectedFrom((prev) => {
+        if (prev !== null) {
+          setFromQuery("");
+          setValue("fromIata", "");
+        }
+        return null;
+      });
+    }
+
+    if (toParam) {
+      const toAirport = airports.find((a) => a.iataCode === toParam.toUpperCase());
+      if (toAirport) {
+        setSelectedTo((prev) => {
+          if (prev?.iataCode !== toAirport.iataCode) {
+            setToQuery(`${toAirport.iataCode} — ${toAirport.city}`);
+            setValue("toIata", toAirport.iataCode);
+            return toAirport;
+          }
+          return prev;
+        });
+      }
+    } else {
+      setSelectedTo((prev) => {
+        if (prev !== null) {
+          setToQuery("");
+          setValue("toIata", "");
+        }
+        return null;
+      });
+    }
+
+    if (dateParam) setValue("departureDate", dateParam);
+
+    if (passengersParam) {
+      setValue("passengers", parseInt(passengersParam) || 1);
+    } else {
+      setValue("passengers", 1);
+    }
+
+    if (tripTypeParam) {
+      setTripType(tripTypeParam);
+      setValue("tripType", tripTypeParam);
+    } else {
+      setTripType("one-way");
+      setValue("tripType", "one-way");
+    }
+  }, [searchParams, airports, setValue]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -126,6 +191,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
     setFromQuery(`${airport.iataCode} — ${airport.city}`);
     setValue("fromIata", airport.iataCode);
     setShowFromDropdown(false);
+    updateUrlParams({ from: airport.iataCode });
   };
 
   const selectTo = (airport: Airport) => {
@@ -133,6 +199,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
     setToQuery(`${airport.iataCode} — ${airport.city}`);
     setValue("toIata", airport.iataCode);
     setShowToDropdown(false);
+    updateUrlParams({ to: airport.iataCode });
   };
 
   const swapCities = () => {
@@ -148,6 +215,11 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
     else setValue("fromIata", "");
     if (prevFrom) setValue("toIata", prevFrom.iataCode);
     else setValue("toIata", "");
+
+    updateUrlParams({
+      from: prevTo?.iataCode || null,
+      to: prevFrom?.iataCode || null,
+    });
   };
 
   const onSubmit = (data: FlightSearchValues) => {
@@ -214,6 +286,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
             onClick={() => {
               setTripType(type);
               setValue("tripType", type);
+              updateUrlParams({ tripType: type });
             }}
             className={cn(
               "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
@@ -256,6 +329,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
                 if (!e.target.value) {
                   setSelectedFrom(null);
                   setValue("fromIata", "");
+                  updateUrlParams({ from: null });
                 }
               }}
               onFocus={() => setShowFromDropdown(true)}
@@ -316,6 +390,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
                 if (!e.target.value) {
                   setSelectedTo(null);
                   setValue("toIata", "");
+                  updateUrlParams({ to: null });
                 }
               }}
               onFocus={() => setShowToDropdown(true)}
@@ -361,7 +436,10 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
               type="number"
               min={1}
               max={9}
-              {...register("passengers", { valueAsNumber: true })}
+              {...register("passengers", {
+                valueAsNumber: true,
+                onChange: (e) => updateUrlParams({ passengers: e.target.value }),
+              })}
               className="flex-1 bg-transparent text-sm outline-none w-full"
             />
           </div>
