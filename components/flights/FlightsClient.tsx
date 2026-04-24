@@ -220,9 +220,13 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
 
   const handleReset = () => {
     setFilters(DEFAULT_FILTERS);
-    if (hasSearch) {
-      router.push("/flights");
-    }
+  };
+
+  const handleClearSearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("from");
+    params.delete("to");
+    router.push(`/flights?${params.toString()}`, { scroll: false });
   };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -252,20 +256,33 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
       <div className="min-w-0">
         {/* Count row + mobile filter toggle */}
         <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{filtered.length}</span>{" "}
-            flight{filtered.length !== 1 ? "s" : ""} found
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{filtered.length}</span>{" "}
+              flight{filtered.length !== 1 ? "s" : ""} found
+              {hasSearch && (
+                <span className="ml-1 text-muted-foreground">
+                  · {from} → {to}
+                </span>
+              )}
+              {filtered.length > 0 && (
+                <span className="ml-1 text-muted-foreground">
+                  · page {page} of {totalPages}
+                </span>
+              )}
+            </p>
             {hasSearch && (
-              <span className="ml-1 text-muted-foreground">
-                · {from} → {to}
-              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-6 px-2 text-xs rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
+                onClick={handleClearSearch}
+              >
+                Clear Route
+                <X className="h-3 w-3 ml-1" />
+              </Button>
             )}
-            {filtered.length > 0 && (
-              <span className="ml-1 text-muted-foreground">
-                · page {page} of {totalPages}
-              </span>
-            )}
-          </p>
+          </div>
 
           <Button
             variant="outline"
@@ -294,18 +311,31 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
               <h3 className="font-semibold text-lg mb-2">No Flights Found</h3>
               <p className="text-muted-foreground text-sm max-w-sm">
                 {hasSearch
-                  ? `No flights from ${from} to ${to} on that date. Try adjusting your search or filters.`
+                  ? `No flights from ${from} to ${to} match your filters. Try adjusting your search or clearing the route.`
                   : "No flights match your current filters. Try resetting them."}
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-6 rounded-xl"
-                onClick={handleReset}
-              >
-                <X className="h-3.5 w-3.5 mr-2" />
-                Reset Filters
-              </Button>
+              <div className="flex gap-3 mt-6">
+                {hasSearch && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={handleClearSearch}
+                  >
+                    <X className="h-3.5 w-3.5 mr-2" />
+                    Clear Route
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={handleReset}
+                >
+                  <X className="h-3.5 w-3.5 mr-2" />
+                  Reset Filters
+                </Button>
+              </div>
             </motion.div>
           ) : (
             <motion.div key={`page-${page}`} className="space-y-3">
