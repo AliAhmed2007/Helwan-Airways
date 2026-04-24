@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getAllFlights } from "@/lib/actions/flights";
 import { RevenueChart, OccupancyChart, CheckinStatusChart } from "@/components/staff/Charts";
+import { KpiCard } from "@/components/staff/KpiCard";
 import { Card } from "@/components/ui/card";
 import { DollarSign, Users, Plane, AlertTriangle, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
@@ -39,28 +40,36 @@ export default async function StaffDashboardPage() {
   const kpis = [
     {
       label: "Today's Revenue",
-      value: "$42,810",
+      numericValue: 42810,
+      prefix: "$",
+      suffix: "",
       sub: "+12% from yesterday",
       icon: DollarSign,
       color: KPI_COLORS.revenue,
     },
     {
       label: "Passengers Today",
-      value: totalPassengersToday.toString(),
+      numericValue: totalPassengersToday,
+      prefix: "",
+      suffix: "",
       sub: `${todayFlights.length} flights`,
       icon: Users,
       color: KPI_COLORS.passengers,
     },
     {
       label: "On-Time Rate",
-      value: `${onTimeRate}%`,
+      numericValue: onTimeRate,
+      prefix: "",
+      suffix: "%",
       sub: "Last 24 hours",
       icon: TrendingUp,
       color: KPI_COLORS.ontime,
     },
     {
       label: "Delayed Flights",
-      value: delayedFlights.toString(),
+      numericValue: delayedFlights,
+      prefix: "",
+      suffix: "",
       sub: "Requires attention",
       icon: AlertTriangle,
       color: KPI_COLORS.delayed,
@@ -79,17 +88,18 @@ export default async function StaffDashboardPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map(({ label, value, sub, icon: Icon, color }) => (
-          <Card key={label} className="p-5 rounded-2xl border-border/50">
-            <div className="flex items-start justify-between mb-3">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
-                <Icon className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold">{value}</div>
-            <div className="text-sm text-muted-foreground mt-0.5">{label}</div>
-            <div className="text-xs text-muted-foreground mt-1 opacity-70">{sub}</div>
-          </Card>
+        {kpis.map(({ label, numericValue, prefix, suffix, sub, icon, color }, index) => (
+          <KpiCard
+            key={label}
+            label={label}
+            numericValue={numericValue}
+            prefix={prefix}
+            suffix={suffix}
+            sub={sub}
+            icon={icon}
+            color={color}
+            index={index}
+          />
         ))}
       </div>
 

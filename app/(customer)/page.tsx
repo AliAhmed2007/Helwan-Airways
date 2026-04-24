@@ -3,6 +3,7 @@
 import { Suspense, useRef, useState, useEffect } from "react";
 import { FlightSearchWidget } from "@/components/flights/FlightSearchWidget";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { Plane, Shield, Clock, Star, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -20,10 +21,10 @@ type Destination = {
 };
 
 const STATS = [
-  { value: "2M+", label: "Passengers Served", icon: Star },
-  { value: "150+", label: "Destinations", icon: Plane },
-  { value: "98%", label: "On-Time Rate", icon: Clock },
-  { value: "5★", label: "Safety Rating", icon: Shield },
+  { numericValue: 2, prefix: "", suffix: "M+", label: "Passengers Served", icon: Star },
+  { numericValue: 150, prefix: "", suffix: "+", label: "Destinations", icon: Plane },
+  { numericValue: 98, prefix: "", suffix: "%", label: "On-Time Rate", icon: Clock },
+  { numericValue: 5, prefix: "", suffix: "★", label: "Safety Rating", icon: Shield },
 ];
 
 const FEATURES = [
@@ -57,8 +58,14 @@ function StatCard({ stat, delay }: { stat: typeof STATS[number]; delay: number }
       transition={{ duration: 0.5, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
       className="text-center space-y-1"
     >
-      <div className="flex items-center justify-center gap-1.5 text-2xl font-bold text-foreground">
-        {stat.value}
+      <div className="flex items-center justify-center gap-1.5 text-2xl font-bold text-foreground tabular-nums">
+        <stat.icon className="h-5 w-5 text-primary opacity-80" />
+        <AnimatedCounter
+          end={stat.numericValue}
+          prefix={stat.prefix}
+          suffix={stat.suffix}
+          duration={3}
+        />
       </div>
       <div className="text-sm text-muted-foreground">{stat.label}</div>
     </motion.div>
@@ -208,9 +215,14 @@ function HeroSection() {
             >
               {STATS.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="flex items-center gap-1.5 text-foreground font-bold text-xl">
+                  <div className="flex items-center gap-1.5 text-foreground font-bold text-xl tabular-nums">
                     <stat.icon className="h-4 w-4" />
-                    {stat.value}
+                    <AnimatedCounter
+                      end={stat.numericValue}
+                      prefix={stat.prefix}
+                      suffix={stat.suffix}
+                      duration={4}
+                    />
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
                 </div>

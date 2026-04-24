@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, SignInButton, useUser } from "@clerk/nextjs";
-import { Plane, Menu, X, Search } from "lucide-react";
+import { Plane, Menu, X, Search, LayoutDashboard, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DarkModeToggle } from "./DarkModeToggle";
@@ -125,7 +125,23 @@ export function Navbar() {
                       avatarBox: "h-8 w-8",
                     },
                   }}
-                />
+                >
+                  <UserButton.MenuItems>
+                    {role === "staff" ? (
+                      <UserButton.Link
+                        label="Dashboard"
+                        labelIcon={<LayoutDashboard size={16} />}
+                        href="/staff"
+                      />
+                    ) : (
+                      <UserButton.Link
+                        label="Manage Flights"
+                        labelIcon={<CalendarDays size={16} />}
+                        href="/dashboard"
+                      />
+                    )}
+                  </UserButton.MenuItems>
+                </UserButton>
               </div>
             ) : (
               <SignInButton mode="redirect">
