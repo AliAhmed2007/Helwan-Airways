@@ -11,6 +11,7 @@ export type FlightFilters = {
   classes: string[];
   sortBy: "price_asc" | "price_desc" | "departure_asc" | "duration_asc";
   selectableOnly: boolean;
+  roundTripOnly: boolean;
   departureDate: string | null;
 };
 
@@ -20,6 +21,7 @@ const DEFAULT_FILTERS: FlightFilters = {
   classes: [],
   sortBy: "departure_asc",
   selectableOnly: false,
+  roundTripOnly: false,
   departureDate: null,
 };
 
@@ -58,6 +60,7 @@ export function FlightsFilterPanel({ filters, onChange, onReset, totalCount, fil
     filters.classes.length +
     (filters.maxPrice < 3000 ? 1 : 0) +
     (filters.selectableOnly ? 1 : 0) +
+    (filters.roundTripOnly ? 1 : 0) +
     (filters.departureDate ? 1 : 0);
 
   const showReset = activeFilterCount > 0 || hasSearch;
@@ -228,26 +231,43 @@ export function FlightsFilterPanel({ filters, onChange, onReset, totalCount, fil
           </div>
         </div>
 
-        {/* Availability */}
+        {/* Type / Availability */}
         <div>
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2.5">
-            Availability
+            Flight Options
           </p>
-          <button
-            onClick={() => onChange({ ...filters, selectableOnly: !filters.selectableOnly })}
-            className={cn(
-              "text-xs px-3 py-2 rounded-xl border font-medium transition-all duration-150 w-full text-left flex items-center justify-between",
-              filters.selectableOnly
-                ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-inset ring-primary/30"
-                : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
-            )}
-          >
-            Selectable Flights Only
-            <div className={cn(
-              "w-2 h-2 rounded-full",
-              filters.selectableOnly ? "bg-primary-foreground/80" : "bg-transparent"
-            )} />
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => onChange({ ...filters, selectableOnly: !filters.selectableOnly })}
+              className={cn(
+                "text-xs px-3 py-2 rounded-xl border font-medium transition-all duration-150 w-full text-left flex items-center justify-between",
+                filters.selectableOnly
+                  ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-inset ring-primary/30"
+                  : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+              )}
+            >
+              Selectable Flights Only
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                filters.selectableOnly ? "bg-primary-foreground/80" : "bg-transparent"
+              )} />
+            </button>
+            <button
+              onClick={() => onChange({ ...filters, roundTripOnly: !filters.roundTripOnly })}
+              className={cn(
+                "text-xs px-3 py-2 rounded-xl border font-medium transition-all duration-150 w-full text-left flex items-center justify-between",
+                filters.roundTripOnly
+                  ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-inset ring-primary/30"
+                  : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+              )}
+            >
+              Round Trip Only
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                filters.roundTripOnly ? "bg-primary-foreground/80" : "bg-transparent"
+              )} />
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

@@ -21,12 +21,14 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
 
   const { flightId } = await params;
   const { passengers = "1" } = await searchParams;
-  const passengerCount = Math.min(Math.max(parseInt(passengers) || 1, 1), 9);
-
   const result = await getFlightById(flightId);
   if (!result.success) notFound();
 
   const flight = result.data;
+  const availableSeats = flight.aircraft.seats.filter((s) => s.reservations.length === 0).length;
+
+  const requestedPassengers = parseInt(passengers) || 1;
+  const passengerCount = Math.min(Math.max(requestedPassengers, 1), availableSeats, 9);
 
   // Use schedDeparture / schedArrival (current schema field names)
   const dep = new Date(flight.schedDeparture);

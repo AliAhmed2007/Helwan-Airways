@@ -38,7 +38,35 @@ export function PassengerDetails({ form, maxPassengers }: PassengerDetailsProps)
         email: "",
         phone: "",
       });
+
+      const currentSeats = form.getValues("seatAssignments") || [];
+      form.setValue("seatAssignments", [
+        ...currentSeats,
+        { passengerId: currentSeats.length, seatId: "", seatNumber: "" },
+      ]);
+
+      const currentBaggage = form.getValues("baggageInfo") || [];
+      form.setValue("baggageInfo", [
+        ...currentBaggage,
+        { passengerId: currentBaggage.length, checkedBags: 0, mealPreference: "NONE" },
+      ]);
     }
+  };
+
+  const removePassenger = (index: number) => {
+    remove(index);
+
+    const currentSeats = form.getValues("seatAssignments") || [];
+    const newSeats = currentSeats
+      .filter((_, i) => i !== index)
+      .map((s, i) => ({ ...s, passengerId: i }));
+    form.setValue("seatAssignments", newSeats);
+
+    const currentBaggage = form.getValues("baggageInfo") || [];
+    const newBaggage = currentBaggage
+      .filter((_, i) => i !== index)
+      .map((b, i) => ({ ...b, passengerId: i }));
+    form.setValue("baggageInfo", newBaggage);
   };
 
   return (
@@ -92,7 +120,7 @@ export function PassengerDetails({ form, maxPassengers }: PassengerDetailsProps)
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => remove(index)}
+                    onClick={() => removePassenger(index)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

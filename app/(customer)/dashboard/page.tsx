@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isPast, isFuture } from "date-fns";
 import { Plane, Calendar, MapPin, Clock, ChevronRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export const metadata = {
@@ -149,12 +150,13 @@ export default async function DashboardPage() {
                             Gate {flight.schedules[0].gate}
                           </div>
                         ) : <div />}
-                        <Button asChild variant="secondary" size="sm" className="rounded-lg ml-auto">
-                          <Link href={`/dashboard/${booking.reservationId}`}>
-                            Manage Booking
-                            <ChevronRight className="h-4 w-4 ml-1 -mr-1 opacity-70" />
-                          </Link>
-                        </Button>
+                        <Link 
+                          href={`/dashboard/${booking.reservationId}`}
+                          className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "rounded-lg ml-auto")}
+                        >
+                          Manage Booking
+                          <ChevronRight className="h-4 w-4 ml-1 -mr-1 opacity-70" />
+                        </Link>
                       </div>
                     </div>
 
@@ -227,12 +229,13 @@ export default async function DashboardPage() {
                         <div className="text-right ml-2 mr-1">
                           <div className="font-semibold text-sm">${Number(booking.totalAmount || 0).toLocaleString()}</div>
                         </div>
-                        <Button asChild variant="ghost" size="icon" className="rounded-lg h-8 w-8 hover:bg-muted/80">
-                          <Link href={`/dashboard/${booking.reservationId}`}>
-                            <ChevronRight className="h-4 w-4 opacity-70" />
-                            <span className="sr-only">View trip</span>
-                          </Link>
-                        </Button>
+                        <Link 
+                          href={`/dashboard/${booking.reservationId}`}
+                          className={cn(buttonVariants({ variant: "ghost" }), "rounded-lg h-8 w-8 p-0 flex items-center justify-center hover:bg-muted/80")}
+                        >
+                          <ChevronRight className="h-4 w-4 opacity-70" />
+                          <span className="sr-only">View trip</span>
+                        </Link>
                       </div>
                     </div>
                   </div>

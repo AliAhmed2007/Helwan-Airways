@@ -116,15 +116,18 @@ type FlightDef = {
   gate?: string;
   terminal?: string;
   aircraftModel?: string;
+  isRoundTrip?: boolean;
+  returnDayOffset?: number;
+  returnHour?: number;
 };
 
 function buildFlightDefs(): FlightDef[] {
   return [
     // ── TODAY ──────────────────────────────────────────────────────────────
     { no: "HA101", from: "CAI", to: "DXB", dayOffset: 0, depHour: 7,  durationH: 3.5,  price: 420,  status: "BOARDING",   gate: "B12", terminal: "T1", aircraftModel: "Boeing 737-800" },
-    { no: "HA102", from: "CAI", to: "LHR", dayOffset: 0, depHour: 9,  durationH: 6.5,  price: 680,  status: "DELAYED",    gate: "A7",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner" },
+    { no: "HA102", from: "CAI", to: "LHR", dayOffset: 0, depHour: 9,  durationH: 6.5,  price: 680,  status: "DELAYED",    gate: "A7",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner", isRoundTrip: true, returnDayOffset: 5, returnHour: 14 },
     { no: "HA103", from: "CAI", to: "IST", dayOffset: 0, depHour: 6,  durationH: 3,    price: 310,  status: "DEPARTED",   gate: "B3",  terminal: "T1", aircraftModel: "Airbus A320neo" },
-    { no: "HA104", from: "CAI", to: "CDG", dayOffset: 0, depHour: 11, durationH: 6,    price: 590,  status: "SCHEDULED",  gate: "A2",  terminal: "T2", aircraftModel: "Airbus A330-300" },
+    { no: "HA104", from: "CAI", to: "CDG", dayOffset: 0, depHour: 11, durationH: 6,    price: 590,  status: "SCHEDULED",  gate: "A2",  terminal: "T2", aircraftModel: "Airbus A330-300", isRoundTrip: true, returnDayOffset: 7, returnHour: 10 },
     { no: "HA105", from: "CAI", to: "RUH", dayOffset: 0, depHour: 8,  durationH: 2.5,  price: 380,  status: "BOARDING",   gate: "B8",  terminal: "T1", aircraftModel: "Boeing 737 MAX 8" },
     { no: "HA106", from: "DXB", to: "CAI", dayOffset: 0, depHour: 5,  durationH: 3.5,  price: 390,  status: "ARRIVED",    gate: "C4",  terminal: "T3", aircraftModel: "Airbus A321neo" },
     { no: "HA107", from: "LHR", to: "CAI", dayOffset: 0, depHour: 7,  durationH: 6,    price: 710,  status: "DEPARTED",   gate: "D9",  terminal: "T5", aircraftModel: "Boeing 777-300ER" },
@@ -145,8 +148,8 @@ function buildFlightDefs(): FlightDef[] {
     { no: "HA202", from: "CAI", to: "LHR", dayOffset: 1, depHour: 6,  durationH: 6.5,  price: 720,  status: "SCHEDULED",  gate: "A6",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner" },
     { no: "HA203", from: "CAI", to: "JFK", dayOffset: 1, depHour: 3,  durationH: 11,   price: 950,  status: "SCHEDULED",  gate: "A1",  terminal: "T2", aircraftModel: "Boeing 777-300ER" },
     { no: "HA204", from: "IST", to: "CAI", dayOffset: 1, depHour: 10, durationH: 3,    price: 295,  status: "SCHEDULED" },
-    { no: "HA205", from: "CAI", to: "FRA", dayOffset: 1, depHour: 9,  durationH: 5.5,  price: 560,  status: "SCHEDULED",  gate: "A8",  terminal: "T2" },
-    { no: "HA206", from: "CAI", to: "AMS", dayOffset: 1, depHour: 7,  durationH: 5.5,  price: 540,  status: "SCHEDULED",  gate: "A5",  terminal: "T2", aircraftModel: "Airbus A350-900" },
+    { no: "HA205", from: "CAI", to: "FRA", dayOffset: 1, depHour: 9,  durationH: 5.5,  price: 560,  status: "SCHEDULED",  gate: "A8",  terminal: "T2", isRoundTrip: true, returnDayOffset: 4, returnHour: 15 },
+    { no: "HA206", from: "CAI", to: "AMS", dayOffset: 1, depHour: 7,  durationH: 5.5,  price: 540,  status: "SCHEDULED",  gate: "A5",  terminal: "T2", aircraftModel: "Airbus A350-900", isRoundTrip: true, returnDayOffset: 8, returnHour: 11 },
     { no: "HA207", from: "CAI", to: "DOH", dayOffset: 1, depHour: 14, durationH: 2,    price: 355,  status: "SCHEDULED" },
     { no: "HA208", from: "CAI", to: "HRG", dayOffset: 1, depHour: 6,  durationH: 1,    price: 115,  status: "SCHEDULED" },
     { no: "HA209", from: "CAI", to: "SSH", dayOffset: 1, depHour: 8,  durationH: 1,    price: 125,  status: "SCHEDULED" },
@@ -396,6 +399,12 @@ async function main() {
         aircraftId: aircraftEntry.aircraftId,
         schedDeparture: depTime,
         schedArrival: arrTime,
+        isRoundTrip: fd.isRoundTrip ?? false,
+        returnDate: fd.returnDayOffset !== undefined ? (() => {
+          const rDate = addDays(now, fd.returnDayOffset);
+          rDate.setHours(fd.returnHour ?? 12, 0, 0, 0);
+          return rDate;
+        })() : null,
         basePrice: fd.price,
         status: fd.status ?? "SCHEDULED",
         createdByStaff: staffMembers[1].staffId,

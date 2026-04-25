@@ -39,6 +39,8 @@ type Flight = {
   // schedule-level override dates (from FlightSchedule)
   departureDate?: Date | string;
   gate?: string | null;
+  isRoundTrip?: boolean;
+  returnDate?: Date | string | null;
 };
 
 interface FlightCardProps {
@@ -100,7 +102,12 @@ export function FlightCard({ flight, passengers, scheduleId, index = 0 }: Flight
               <Plane className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <div className="font-mono font-semibold text-sm">{flight.flightNumber}</div>
+              <div className="font-mono font-semibold text-sm flex items-center gap-2">
+                {flight.flightNumber}
+                {flight.isRoundTrip && (
+                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Round Trip</Badge>
+                )}
+              </div>
               <div className="text-xs text-muted-foreground">{flight.aircraft.model}</div>
             </div>
           </div>
@@ -227,6 +234,12 @@ export function FlightCard({ flight, passengers, scheduleId, index = 0 }: Flight
               <div className="text-xs text-muted-foreground mb-1">Date</div>
               <div className="font-medium">{format(dep, "dd MMM yyyy")}</div>
             </div>
+            {flight.isRoundTrip && flight.returnDate && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Return Date</div>
+                <div className="font-medium">{format(new Date(flight.returnDate), "dd MMM yyyy")}</div>
+              </div>
+            )}
           </div>
 
           {/* Amenities */}

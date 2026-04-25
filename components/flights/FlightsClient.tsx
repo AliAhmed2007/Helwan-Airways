@@ -26,6 +26,8 @@ type ScheduleWithFlight = {
     schedDeparture: Date | string;
     schedArrival: Date | string;
     status: string;
+    isRoundTrip: boolean;
+    returnDate: Date | string | null;
     basePrice: string | number;
     depAirport: { iataCode: string; city: string; airportName: string };
     arrAirport: { iataCode: string; city: string; airportName: string };
@@ -193,6 +195,10 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
       });
     }
 
+    if (filters.roundTripOnly) {
+      result = result.filter((s) => s.flight.isRoundTrip);
+    }
+
     result = [...result].sort((a, b) => {
       switch (filters.sortBy) {
         case "price_asc":
@@ -347,6 +353,8 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
                     basePrice: Number(schedule.flight.basePrice),
                     departureDate: schedule.departureDate,
                     gate: schedule.gate,
+                    isRoundTrip: schedule.flight.isRoundTrip,
+                    returnDate: schedule.flight.returnDate,
                   }}
                   passengers={passengers}
                   scheduleId={schedule.scheduleId}

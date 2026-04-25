@@ -165,6 +165,8 @@ model Flight {
   aircraftId     String
   schedDeparture DateTime
   schedArrival   DateTime
+  isRoundTrip    Boolean      @default(false)
+  returnDate     DateTime?
   basePrice      Decimal      @db.Decimal(10, 2)
   status         FlightStatus @default(SCHEDULED)
   createdByStaff String?

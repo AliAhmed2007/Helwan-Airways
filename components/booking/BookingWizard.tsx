@@ -131,6 +131,8 @@ export function BookingWizard({
   }, 0);
 
   const passengers = watch("passengers") ?? [];
+  const currentPassengerCount = passengers.length;
+  const availableSeatsCount = seats.filter((s) => !s.isOccupied).length;
 
   return (
     <div className="space-y-8">
@@ -148,13 +150,13 @@ export function BookingWizard({
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
             {step === 1 && (
-              <PassengerDetails form={form} maxPassengers={passengerCount} />
+              <PassengerDetails form={form} maxPassengers={availableSeatsCount} />
             )}
             {step === 2 && (
               <SeatMap
                 seats={seats}
                 form={form}
-                passengerCount={passengerCount}
+                passengerCount={currentPassengerCount}
               />
             )}
             {step === 3 && (
