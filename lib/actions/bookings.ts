@@ -301,8 +301,9 @@ export async function getFlightManifest(flightId: string) {
   return { success: true as const, data: manifest };
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Cancel Reservation (customer)
+// Cancel Reservation (customer) — only allowed > 48 h before departure
 // ─────────────────────────────────────────────────────────────────────────────
 export async function cancelReservation(reservationId: string) {
   const { userId } = await auth();
@@ -312,7 +313,12 @@ export async function cancelReservation(reservationId: string) {
 
   const existing = await prisma.reservation.findFirst({
     where: { reservationId, clerkUserId: userId },
-    select: { reservationId: true, status: true, totalAmount: true },
+    select: {
+      reservationId: true,
+      status: true,
+      totalAmount: true,
+      flight: { select: { schedDeparture: true } },
+    },
   });
 
   if (!existing) {
@@ -320,6 +326,16 @@ export async function cancelReservation(reservationId: string) {
   }
   if (existing.status === "CANCELLED") {
     return { success: false as const, error: "Reservation already cancelled" };
+  }
+
+  const hoursUntilDeparture =
+    (new Date(existing.flight.schedDeparture).getTime() - Date.now()) / 36e5;
+
+  if (hoursUntilDeparture < 48) {
+    return {
+      success: false as const,
+      error: "Cancellations are only allowed more than 48 hours before departure.",
+    };
   }
 
   await prisma.$transaction([
@@ -342,5 +358,7 @@ export async function cancelReservation(reservationId: string) {
   ]);
 
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/${reservationId}`);
   return { success: true as const };
 }
+

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { CompleteBookingValues } from "@/lib/schemas/booking";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -126,25 +124,22 @@ export function SeatMap({ seats, form, passengerCount }: SeatMapProps) {
 
     return (
       <Tooltip key={col}>
-        <TooltipTrigger className="contents">
-          <motion.button
-            type="button"
-            whileHover={!seat.isOccupied ? { scale: 1.1 } : undefined}
-            whileTap={!seat.isOccupied ? { scale: 0.95 } : undefined}
-            onClick={() => handleSeatClick(seat)}
-            disabled={seat.isOccupied}
-            className={cn(
-              "h-7 w-full rounded border text-[10px] font-semibold transition-all duration-150",
-              seat.isOccupied
-                ? "bg-muted/30 border-border/30 cursor-not-allowed opacity-40"
-                : isSelected
-                ? classes.selected
-                : classes.available
-            )}
-            aria-label={`Seat ${seat.seatNumber} ${seat.class}`}
-          >
-            {isSelected ? seatLabel : ""}
-          </motion.button>
+        <TooltipTrigger
+          type="button"
+          onClick={() => handleSeatClick(seat)}
+          disabled={seat.isOccupied}
+          className={cn(
+            "h-7 w-full rounded border text-[10px] font-semibold transition-all duration-150",
+            !seat.isOccupied && "hover:scale-110 active:scale-95",
+            seat.isOccupied
+              ? "bg-muted/30 border-border/30 cursor-not-allowed opacity-40"
+              : isSelected
+              ? classes.selected
+              : classes.available
+          )}
+          aria-label={`Seat ${seat.seatNumber} ${seat.class}`}
+        >
+          {isSelected ? seatLabel : ""}
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
           <p className="font-medium">{seat.seatNumber} — {classes.label}</p>

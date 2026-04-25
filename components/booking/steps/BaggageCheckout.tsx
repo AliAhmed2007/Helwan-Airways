@@ -16,7 +16,6 @@ const MEAL_OPTIONS = [
   { value: "VEGETARIAN", label: "Vegetarian", description: "Plant-based menu" },
   { value: "VEGAN", label: "Vegan", description: "100% plant-based" },
   { value: "HALAL", label: "Halal", description: "Halal certified" },
-  { value: "KOSHER", label: "Kosher", description: "Kosher certified" },
 ];
 
 const BAG_PRICE_PER_BAG = 25;

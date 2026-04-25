@@ -69,7 +69,6 @@ export const MealPreferenceEnum = z.enum([
   "VEGETARIAN",
   "VEGAN",
   "HALAL",
-  "KOSHER",
 ]);
 
 export const BaggagePassengerSchema = z.object({

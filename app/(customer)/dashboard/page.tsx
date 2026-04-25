@@ -5,8 +5,10 @@ import { BoardingPass } from "@/components/customer/BoardingPass";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isPast, isFuture } from "date-fns";
-import { Plane, Calendar, MapPin, Clock } from "lucide-react";
+import { Plane, Calendar, MapPin, Clock, ChevronRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const metadata = {
   title: "My Trips",
@@ -89,7 +91,7 @@ export default async function DashboardPage() {
 
                 return (
                   <div
-                    key={booking.id}
+                    key={booking.reservationId}
                     className="rounded-2xl border border-border/50 bg-card overflow-hidden"
                   >
                     {/* Flight info header */}
@@ -110,7 +112,7 @@ export default async function DashboardPage() {
                             {status.label}
                           </Badge>
                           <div className="text-right">
-                            <div className="font-semibold">${Number(booking.totalPrice || 0).toLocaleString()}</div>
+                            <div className="font-semibold">${Number(booking.totalAmount || 0).toLocaleString()}</div>
                             <div className="text-xs text-muted-foreground">Total paid</div>
                           </div>
                         </div>
@@ -140,14 +142,20 @@ export default async function DashboardPage() {
                         </div>
                       </div>
 
-                      {flight.schedules?.[0]?.gate && (
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
+                        {flight.schedules?.[0]?.gate ? (
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <MapPin className="h-3.5 w-3.5" />
                             Gate {flight.schedules[0].gate}
                           </div>
-                        </div>
-                      )}
+                        ) : <div />}
+                        <Button asChild variant="secondary" size="sm" className="rounded-lg ml-auto">
+                          <Link href={`/dashboard/${booking.reservationId}`}>
+                            Manage Booking
+                            <ChevronRight className="h-4 w-4 ml-1 -mr-1 opacity-70" />
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Boarding passes per passenger */}
@@ -155,9 +163,9 @@ export default async function DashboardPage() {
                     <div className="p-6 space-y-4">
                       <h3 className="text-sm font-semibold">Boarding Passes</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {booking.passengers.map((passenger) => (
+                        {[booking.passenger].filter(Boolean).map((passenger) => (
                           <BoardingPass
-                            key={passenger.id}
+                            key={passenger.passengerId}
                             data={{
                               bookingRef: booking.bookingRef,
                               passengerName: `${passenger.firstName} ${passenger.lastName}`,
@@ -166,11 +174,11 @@ export default async function DashboardPage() {
                               arrivalAirport: flight.arrAirport,
                               departureTime: flight.schedDeparture,
                               arrivalTime: flight.schedArrival,
-                              seatNumber: passenger.seatNumber ?? "—",
-                              seatClass: "ECONOMY",
+                              seatNumber: booking.seat?.seatNumber ?? "—",
+                              seatClass: booking.travelClass ?? "ECONOMY",
                               gate: flight.schedules?.[0]?.gate,
-                              boardingGroup: passenger.boardingGroup ?? "A",
-                              checkInStatus: passenger.checkInStatus,
+                              boardingGroup: booking.boardingGroup ?? "A",
+                              checkInStatus: booking.checkInStatus,
                             }}
                           />
                         ))}
@@ -195,7 +203,7 @@ export default async function DashboardPage() {
 
                 return (
                   <div
-                    key={booking.id}
+                    key={booking.reservationId}
                     className="rounded-2xl border border-border/50 bg-card/50 p-5 opacity-75"
                   >
                     <div className="flex items-center justify-between gap-4">
@@ -216,9 +224,15 @@ export default async function DashboardPage() {
                         <Badge variant="outline" className={status.className}>
                           {status.label}
                         </Badge>
-                        <div className="text-right">
-                          <div className="font-semibold text-sm">${Number(booking.totalPrice || 0).toLocaleString()}</div>
+                        <div className="text-right ml-2 mr-1">
+                          <div className="font-semibold text-sm">${Number(booking.totalAmount || 0).toLocaleString()}</div>
                         </div>
+                        <Button asChild variant="ghost" size="icon" className="rounded-lg h-8 w-8 hover:bg-muted/80">
+                          <Link href={`/dashboard/${booking.reservationId}`}>
+                            <ChevronRight className="h-4 w-4 opacity-70" />
+                            <span className="sr-only">View trip</span>
+                          </Link>
+                        </Button>
                       </div>
                     </div>
                   </div>

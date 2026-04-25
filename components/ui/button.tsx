@@ -50,6 +50,7 @@ function Button({
     <ButtonPrimitive
       data-slot="button"
       className={cn("cursor-pointer", buttonVariants({ variant, size, className }))}
+      suppressHydrationWarning
       {...props}
     />
   )
