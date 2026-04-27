@@ -2,19 +2,25 @@
 
 import { Card } from "@/components/ui/card";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
-import { type LucideIcon } from "lucide-react";
+import { DollarSign, Users, TrendingUp, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+
+// Map strings to Icon components
+const ICON_MAP = {
+  revenue: DollarSign,
+  passengers: Users,
+  ontime: TrendingUp,
+  delayed: AlertTriangle,
+};
 
 interface KpiCardProps {
   label: string;
-  /** Raw numeric value to animate to */
   numericValue: number;
-  /** Text shown before the number, e.g. "$" */
   prefix?: string;
-  /** Text shown after the number, e.g. "%" or "+" */
   suffix?: string;
   sub: string;
-  icon: LucideIcon;
+  // Change type to accept keys of ICON_MAP
+  icon: keyof typeof ICON_MAP;
   color: string;
   index: number;
   decimals?: number;
@@ -26,11 +32,14 @@ export function KpiCard({
   prefix = "",
   suffix = "",
   sub,
-  icon: Icon,
+  icon,
   color,
   index,
   decimals = 0,
 }: KpiCardProps) {
+  // Resolve the component based on the string key
+  const Icon = ICON_MAP[icon];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -44,7 +53,7 @@ export function KpiCard({
       <Card className="p-5 rounded-2xl border-border/50 hover:shadow-md transition-shadow duration-300">
         <div className="flex items-start justify-between mb-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
-            <Icon className="h-4 w-4" />
+            {Icon && <Icon className="h-4 w-4" />}
           </div>
         </div>
         <div className="text-2xl font-bold tabular-nums">

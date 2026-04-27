@@ -4,7 +4,7 @@ import { getAllFlights } from "@/lib/actions/flights";
 import { RevenueChart, OccupancyChart, CheckinStatusChart } from "@/components/staff/Charts";
 import { KpiCard } from "@/components/staff/KpiCard";
 import { Card } from "@/components/ui/card";
-import { DollarSign, Users, Plane, AlertTriangle, TrendingUp } from "lucide-react";
+import { Plane } from "lucide-react";
 import { format } from "date-fns";
 
 export const metadata = {
@@ -37,6 +37,7 @@ export default async function StaffDashboardPage() {
     ? Math.round((onTimeFlights / todayFlights.length) * 100)
     : 100;
 
+  // PASS STRINGS FOR ICONS INSTEAD OF THE COMPONENTS
   const kpis = [
     {
       label: "Today's Revenue",
@@ -44,7 +45,7 @@ export default async function StaffDashboardPage() {
       prefix: "$",
       suffix: "",
       sub: "+12% from yesterday",
-      icon: DollarSign,
+      icon: "revenue" as const, 
       color: KPI_COLORS.revenue,
     },
     {
@@ -53,7 +54,7 @@ export default async function StaffDashboardPage() {
       prefix: "",
       suffix: "",
       sub: `${todayFlights.length} flights`,
-      icon: Users,
+      icon: "passengers" as const,
       color: KPI_COLORS.passengers,
     },
     {
@@ -62,7 +63,7 @@ export default async function StaffDashboardPage() {
       prefix: "",
       suffix: "%",
       sub: "Last 24 hours",
-      icon: TrendingUp,
+      icon: "ontime" as const,
       color: KPI_COLORS.ontime,
     },
     {
@@ -71,14 +72,13 @@ export default async function StaffDashboardPage() {
       prefix: "",
       suffix: "",
       sub: "Requires attention",
-      icon: AlertTriangle,
+      icon: "delayed" as const,
       color: KPI_COLORS.delayed,
     },
   ];
 
   return (
     <div className="p-6 space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Operations Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">
@@ -86,24 +86,16 @@ export default async function StaffDashboardPage() {
         </p>
       </div>
 
-      {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map(({ label, numericValue, prefix, suffix, sub, icon, color }, index) => (
+        {kpis.map((kpi, index) => (
           <KpiCard
-            key={label}
-            label={label}
-            numericValue={numericValue}
-            prefix={prefix}
-            suffix={suffix}
-            sub={sub}
-            icon={icon}
-            color={color}
+            key={kpi.label}
+            {...kpi}
             index={index}
           />
         ))}
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-5 rounded-2xl border-border/50">
           <div className="mb-4">
@@ -131,7 +123,6 @@ export default async function StaffDashboardPage() {
           <CheckinStatusChart />
         </Card>
 
-        {/* Today's flights quick list */}
         <Card className="p-5 rounded-2xl border-border/50">
           <div className="mb-4">
             <h3 className="font-semibold text-sm">Today's Flights</h3>
