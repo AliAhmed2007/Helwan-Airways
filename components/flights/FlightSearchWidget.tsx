@@ -276,9 +276,9 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-2xl mx-auto">
       {/* Trip type selector */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 justify-start">
         {(["one-way", "round-trip"] as const).map((type) => (
           <button
             key={type}
@@ -303,18 +303,20 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
       {/* From / Swap / To Layout */}
       <div
         className={cn(
-          "grid items-start relative",
-          isVertical ? "grid-cols-1 gap-1" : "grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3"
+          "grid items-end relative w-full",
+          isVertical
+            ? "grid-cols-1 gap-1"
+            : "grid-cols-[1fr_auto_1fr] gap-2 md:gap-3"
         )}
       >
         {/* From */}
-        <div className="relative z-20 mb-3" ref={fromRef}>
+        <div className="relative z-20" ref={fromRef}>
           <Label className="text-xs text-muted-foreground mb-1.5 block uppercase tracking-wide">
             From
           </Label>
           <div
             className={cn(
-              "flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5 transition-shadow",
+              "flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5 transition-shadow h-[46px]",
               errors.fromIata
                 ? "border-destructive"
                 : "border-border/60 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
@@ -334,13 +336,10 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
               }}
               onFocus={() => setShowFromDropdown(true)}
               placeholder="City or airport"
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
             />
             <Plane className="h-4 w-4 text-muted-foreground shrink-0" />
           </div>
-          {errors.fromIata && (
-            <p className="text-xs text-destructive mt-1">{errors.fromIata.message}</p>
-          )}
           <AirportDropdown
             items={filteredFrom}
             onSelect={selectFrom}
@@ -348,23 +347,15 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
           />
         </div>
 
-        {/* Swap button */}
-        <div
-          className={cn(
-            "flex relative z-10",
-            isVertical ? "justify-center -my-3" : "items-end pb-0.5"
-          )}
-        >
+        {/* Swap button - Centered between inputs */}
+        <div className={cn("flex items-center justify-center h-[46px]", isVertical ? "-my-3 z-30" : "px-1")}>
           <button
             type="button"
             onClick={swapCities}
-            className={cn(
-              "p-2.5 rounded-full border border-border/60 bg-background hover:bg-muted transition-colors text-muted-foreground hover:text-foreground",
-              isVertical ? "rotate-90 shadow-sm" : "mt-6"
-            )}
-            aria-label="Swap departure and arrival"
+            className="p-2 rounded-full border border-border/60 bg-background hover:bg-muted transition-colors text-muted-foreground hover:text-foreground shadow-sm"
+            aria-label="Swap"
           >
-            <ArrowLeftRight className="h-4 w-4" />
+            <ArrowLeftRight className={cn("h-4 w-4", isVertical && "rotate-90")} />
           </button>
         </div>
 
@@ -375,7 +366,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
           </Label>
           <div
             className={cn(
-              "flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5 transition-shadow",
+              "flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5 transition-shadow h-[46px]",
               errors.toIata
                 ? "border-destructive"
                 : "border-border/60 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20"
@@ -395,13 +386,10 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
               }}
               onFocus={() => setShowToDropdown(true)}
               placeholder="City or airport"
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full"
             />
             <Plane className="h-4 w-4 text-muted-foreground shrink-0 rotate-90" />
           </div>
-          {errors.toIata && (
-            <p className="text-xs text-destructive mt-1">{errors.toIata.message}</p>
-          )}
           <AirportDropdown
             items={filteredTo}
             onSelect={selectTo}
@@ -410,39 +398,30 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
         </div>
       </div>
 
-      {/* Passengers Layout */}
-      <div
-        className={cn(
-          "grid gap-3 pt-2",
-          isVertical ? "grid-cols-1" : "grid-cols-1"
-        )}
-      >
-
-        {/* Passengers */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block uppercase tracking-wide">
-            Passengers
-          </Label>
-          <div
-            className={cn(
-              "flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5",
-              errors.passengers
-                ? "border-destructive"
-                : "border-border/60 focus-within:border-primary/50"
-            )}
-          >
-            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
-            <input
-              type="number"
-              min={1}
-              max={9}
-              {...register("passengers", {
-                valueAsNumber: true,
-                onChange: (e) => updateUrlParams({ passengers: e.target.value }),
-              })}
-              className="flex-1 bg-transparent text-sm outline-none w-full"
-            />
-          </div>
+      {/* Passengers - Now Full Width */}
+      <div className="w-full">
+        <Label className="text-xs text-muted-foreground mb-1.5 block uppercase tracking-wide">
+          Passengers
+        </Label>
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5 h-[46px] w-full",
+            errors.passengers
+              ? "border-destructive"
+              : "border-border/60 focus-within:border-primary/50"
+          )}
+        >
+          <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+          <input
+            type="number"
+            min={1}
+            max={9}
+            {...register("passengers", {
+              valueAsNumber: true,
+              onChange: (e) => updateUrlParams({ passengers: e.target.value }),
+            })}
+            className="flex-1 bg-transparent text-sm outline-none w-full"
+          />
         </div>
       </div>
 
@@ -450,7 +429,7 @@ export function FlightSearchWidget({ orientation = "horizontal" }: FlightSearchW
         type="submit"
         size="lg"
         disabled={isSubmitting}
-        className="w-full rounded-xl font-semibold gap-2 mt-2"
+        className="w-full rounded-xl font-semibold gap-2 mt-2 h-[48px]"
       >
         <Search className="h-4 w-4" />
         {isSubmitting ? "Searching..." : "Search Flights"}

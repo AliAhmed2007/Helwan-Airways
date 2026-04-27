@@ -49,7 +49,7 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn("cursor-pointer", buttonVariants({ variant, size, className }))}
+      className={cn("cursor-pointer hover:bg-primary/80 dark:hover:bg-primary/60", buttonVariants({ variant, size, className }))}
       suppressHydrationWarning
       {...props}
     />
