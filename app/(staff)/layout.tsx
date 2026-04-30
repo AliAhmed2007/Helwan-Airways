@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/staff", label: "Dashboard", icon: LayoutDashboard },
   { href: "/staff/flights", label: "Flights", icon: Plane },
+  { href: "/staff/passengers", label: "Passengers", icon: Users },
+  { href: "/staff/seats-baggage", label: "Seats & Baggage", icon: BarChart2 },
+  { href: "/staff/reservations", label: "Reservations", icon: BarChart2 },
+  { href: "/staff/aircrafts", label: "Aircrafts", icon: Plane },
+  { href: "/staff/airports", label: "Airports", icon: Settings },
+  { href: "/staff/payments", label: "Payments", icon: BarChart2 },
 ];
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {

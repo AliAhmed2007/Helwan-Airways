@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
-import { DollarSign, Users, TrendingUp, AlertTriangle } from "lucide-react";
+import { DollarSign, Users, TrendingUp, AlertTriangle, Plane, Map, Package, CreditCard, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
 // Map strings to Icon components
@@ -11,6 +11,13 @@ const ICON_MAP = {
   passengers: Users,
   ontime: TrendingUp,
   delayed: AlertTriangle,
+  plane: Plane,
+  map: Map,
+  package: Package,
+  creditCard: CreditCard,
+  checkCircle: CheckCircle,
+  xCircle: XCircle,
+  calendar: Calendar,
 };
 
 interface KpiCardProps {
