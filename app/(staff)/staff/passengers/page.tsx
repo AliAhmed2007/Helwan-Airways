@@ -1,4 +1,4 @@
-import { getAllPassengers } from "@/lib/actions/passengers";
+import { getStaffPassengers } from "@/lib/actions/staff";
 import { PassengersClient } from "./PassengersClient";
 import { KpiCard } from "@/components/staff/KpiCard";
 import { Users } from "lucide-react";
@@ -8,15 +8,16 @@ export const metadata = {
 };
 
 export default async function StaffPassengersPage() {
-  const result = await getAllPassengers();
-  const passengers = result.success && result.data ? result.data : [];
+  const result = await getStaffPassengers();
+  const passengers = result.success ? result.data : [];
 
   const totalPassengers = passengers.length;
   const recentBookings = passengers.filter(
-    (p) => p.reservations && p.reservations.length > 0 && 
-           new Date(p.reservations[0].createdAt).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000
+    (p) => p.reservations.length > 0 &&
+      new Date(p.reservations[0].createdAt).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000
   ).length;
-  const topTravelers = passengers.filter(p => p._count.reservations >= 5).length;
+  const topTravelers = passengers.filter((p) => p._count.reservations >= 5).length;
+  const withPassport = passengers.filter((p) => (p as { passportNum?: string }).passportNum).length;
 
   return (
     <div className="p-6 space-y-6">
@@ -33,34 +34,14 @@ export default async function StaffPassengersPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <KpiCard
-          label="Total Passengers"
-          numericValue={totalPassengers}
-          sub="Registered in the system"
-          icon="passengers"
-          color="bg-blue-500/10 text-blue-500"
-          index={0}
-        />
-        <KpiCard
-          label="Active This Month"
-          numericValue={recentBookings}
-          sub="Booked in the last 30 days"
-          icon="calendar"
-          color="bg-emerald-500/10 text-emerald-500"
-          index={1}
-        />
-        <KpiCard
-          label="Frequent Flyers"
-          numericValue={topTravelers}
-          sub="5+ total reservations"
-          icon="checkCircle"
-          color="bg-amber-500/10 text-amber-500"
-          index={2}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard label="Total Passengers" numericValue={totalPassengers} sub="Registered in the system" icon="passengers" color="bg-blue-500/10 text-blue-500" index={0} />
+        <KpiCard label="Active This Month" numericValue={recentBookings} sub="Booked in last 30 days" icon="calendar" color="bg-emerald-500/10 text-emerald-500" index={1} />
+        <KpiCard label="Frequent Flyers" numericValue={topTravelers} sub="5+ reservations" icon="ontime" color="bg-amber-500/10 text-amber-500" index={2} />
+        <KpiCard label="With Passport" numericValue={withPassport} sub="Passport on file" icon="checkCircle" color="bg-violet-500/10 text-violet-500" index={3} />
       </div>
 
-      <PassengersClient data={passengers} />
+      <PassengersClient data={passengers as never} />
     </div>
   );
 }
