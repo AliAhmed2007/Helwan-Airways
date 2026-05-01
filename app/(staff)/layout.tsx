@@ -1,22 +1,37 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Plane, Users, BarChart2, Settings, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Plane,
+  Users,
+  Armchair,
+  CalendarCheck,
+  Building2,
+  MapPin,
+  CreditCard,
+} from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { StaffNavLink } from "@/components/staff/StaffNavLink";
 
 const NAV_ITEMS = [
-  { href: "/staff", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/staff", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/staff/flights", label: "Flights", icon: Plane },
   { href: "/staff/passengers", label: "Passengers", icon: Users },
-  { href: "/staff/seats-baggage", label: "Seats & Baggage", icon: BarChart2 },
-  { href: "/staff/reservations", label: "Reservations", icon: BarChart2 },
-  { href: "/staff/aircrafts", label: "Aircrafts", icon: Plane },
-  { href: "/staff/airports", label: "Airports", icon: Settings },
-  { href: "/staff/payments", label: "Payments", icon: BarChart2 },
+  { href: "/staff/seats-baggage", label: "Seats & Baggage", icon: Armchair },
+  { href: "/staff/reservations", label: "Reservations", icon: CalendarCheck },
+  { href: "/staff/aircrafts", label: "Aircrafts", icon: Building2 },
+  { href: "/staff/airports", label: "Airports", icon: MapPin },
+  { href: "/staff/payments", label: "Payments", icon: CreditCard },
 ];
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
+  const { sessionClaims } = await auth();
+  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  if (role !== "staff") {
+    redirect("/");
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -34,19 +49,9 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors duration-150",
-                "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </Link>
+        <nav className="flex-1 p-4 space-y-0.5">
+          {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => (
+            <StaffNavLink key={href} href={href} label={label} icon={Icon} exact={exact} />
           ))}
         </nav>
 
