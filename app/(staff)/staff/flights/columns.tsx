@@ -14,7 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { deleteFlight, updateFlightStatus } from "@/lib/actions/staff";
+import { deleteFlight } from "@/lib/actions/staff";
+import { updateFlightStatus } from "@/lib/actions/flights";
 import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
