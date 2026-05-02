@@ -2,12 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 // ─── Auth guard helper ────────────────────────────────────────────────────────
 async function requireStaff() {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const { sessionClaims, userId } = await auth();
+  let role = (sessionClaims?.metadata as { role?: string })?.role;
+
+  if (!role && userId) {
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    role = user.publicMetadata?.role as string | undefined;
+  }
+
   if (role !== "staff") {
     throw new Error("Unauthorized");
   }

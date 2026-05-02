@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,7 +12,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
-import { cn } from "@/lib/utils";
 import { StaffNavLink } from "@/components/staff/StaffNavLink";
 
 const NAV_ITEMS = [
@@ -27,8 +26,16 @@ const NAV_ITEMS = [
 ];
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const { sessionClaims, userId } = await auth();
+  let role = (sessionClaims?.metadata as { role?: string })?.role;
+
+  if (!role && userId) {
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    role = user.publicMetadata?.role as string | undefined;
+  }
+
+  console.log(role);
   if (role !== "staff") {
     redirect("/");
   }
@@ -51,7 +58,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         {/* Nav */}
         <nav className="flex-1 p-4 space-y-0.5">
           {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => (
-            <StaffNavLink key={href} href={href} label={label} icon={Icon} exact={exact} />
+            <StaffNavLink key={href} href={href} label={label} icon={<Icon className="h-4 w-4" />} exact={exact} />
           ))}
         </nav>
 

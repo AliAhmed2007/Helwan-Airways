@@ -8,11 +8,11 @@ import type { LucideIcon } from "lucide-react";
 interface StaffNavLinkProps {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   exact?: boolean;
 }
 
-export function StaffNavLink({ href, label, icon: Icon, exact }: StaffNavLinkProps) {
+export function StaffNavLink({ href, label, icon, exact }: StaffNavLinkProps) {
   const pathname = usePathname();
   const isActive = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
@@ -26,12 +26,9 @@ export function StaffNavLink({ href, label, icon: Icon, exact }: StaffNavLinkPro
           : "text-muted-foreground hover:text-foreground hover:bg-muted"
       )}
     >
-      <Icon
-        className={cn(
-          "h-4 w-4 shrink-0 transition-colors",
-          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-        )}
-      />
+      <div className="flex items-center justify-center shrink-0">
+        {icon}
+      </div>
       <span className="flex-1">{label}</span>
       {isActive && (
         <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
