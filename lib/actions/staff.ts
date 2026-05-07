@@ -20,6 +20,24 @@ async function requireStaff() {
   }
 }
 
+// --- Helper to serialize Prisma Decimal and other complex objects ---
+function serializePrisma<T>(data: T): T {
+  if (data === null || data === undefined) return data;
+  if (data instanceof Date) return data;
+  // Handle Prisma Decimal
+  if (typeof (data as any)?.toNumber === 'function') return (data as any).toNumber() as any;
+  if (Array.isArray(data)) return data.map(serializePrisma) as any;
+  if (typeof data === 'object') {
+    const res: any = {};
+    for (const key of Object.keys(data as any)) {
+      res[key] = serializePrisma((data as any)[key]);
+    }
+    return res;
+  }
+  return data;
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // FLIGHTS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -40,8 +58,9 @@ export async function getStaffFlights() {
       },
     },
     orderBy: { schedDeparture: "asc" },
+    take: 500,
   });
-  return { success: true as const, data: flights };
+  return { success: true as const, data: serializePrisma(flights) };
 }
 
 export async function createFlight(data: {
@@ -70,7 +89,7 @@ export async function createFlight(data: {
     },
   });
   revalidatePath("/staff/flights");
-  return { success: true as const, data: flight };
+  return { success: true as const, data: serializePrisma(flight) };
 }
 
 export async function deleteFlight(flightId: string) {
@@ -95,8 +114,9 @@ export async function getStaffSchedules() {
       },
     },
     orderBy: { departureDate: "desc" },
+    take: 500,
   });
-  return { success: true as const, data: schedules };
+  return { success: true as const, data: serializePrisma(schedules) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -112,7 +132,7 @@ export async function getStaffStatusHistory() {
     orderBy: { changeTime: "desc" },
     take: 500,
   });
-  return { success: true as const, data: history };
+  return { success: true as const, data: serializePrisma(history) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -130,8 +150,9 @@ export async function getStaffPassengers() {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 500,
   });
-  return { success: true as const, data: passengers };
+  return { success: true as const, data: serializePrisma(passengers) };
 }
 
 export async function deletePassenger(passengerId: string) {
@@ -154,8 +175,9 @@ export async function getStaffSeats() {
       },
     },
     orderBy: [{ aircraft: { registrationNum: "asc" } }, { seatNumber: "asc" }],
+    take: 1000, // Aircraft seats can be many
   });
-  return { success: true as const, data: seats };
+  return { success: true as const, data: serializePrisma(seats) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -180,8 +202,9 @@ export async function getStaffBaggage() {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 500,
   });
-  return { success: true as const, data: baggage };
+  return { success: true as const, data: serializePrisma(baggage) };
 }
 
 export async function updateBaggageStatus(baggageId: string, status: string) {
@@ -213,8 +236,9 @@ export async function getStaffReservations() {
       baggage: { select: { baggageId: true, status: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 500,
   });
-  return { success: true as const, data: reservations };
+  return { success: true as const, data: serializePrisma(reservations) };
 }
 
 export async function updateReservationStatus(
@@ -293,7 +317,7 @@ export async function getStaffReservationHistory() {
     orderBy: { changeTime: "desc" },
     take: 500,
   });
-  return { success: true as const, data: history };
+  return { success: true as const, data: serializePrisma(history) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -311,8 +335,9 @@ export async function getStaffAircrafts() {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 100,
   });
-  return { success: true as const, data: aircrafts };
+  return { success: true as const, data: serializePrisma(aircrafts) };
 }
 
 export async function createAircraft(data: {
@@ -327,7 +352,7 @@ export async function createAircraft(data: {
   await requireStaff();
   const aircraft = await prisma.aircraft.create({ data });
   revalidatePath("/staff/aircrafts");
-  return { success: true as const, data: aircraft };
+  return { success: true as const, data: serializePrisma(aircraft) };
 }
 
 export async function updateAircraftStatus(aircraftId: string, status: string) {
@@ -357,8 +382,9 @@ export async function getStaffAirports() {
       _count: { select: { departingFlights: true, arrivingFlights: true } },
     },
     orderBy: { city: "asc" },
+    take: 500,
   });
-  return { success: true as const, data: airports };
+  return { success: true as const, data: serializePrisma(airports) };
 }
 
 export async function createAirport(data: {
@@ -371,7 +397,7 @@ export async function createAirport(data: {
   await requireStaff();
   const airport = await prisma.airport.create({ data });
   revalidatePath("/staff/airports");
-  return { success: true as const, data: airport };
+  return { success: true as const, data: serializePrisma(airport) };
 }
 
 export async function deleteAirport(airportId: string) {
@@ -401,8 +427,9 @@ export async function getStaffPayments() {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 500,
   });
-  return { success: true as const, data: payments };
+  return { success: true as const, data: serializePrisma(payments) };
 }
 
 export async function refundPayment(paymentId: string) {
