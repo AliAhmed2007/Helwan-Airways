@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { deleteFlight } from "@/lib/actions/staff";
 import { updateFlightStatus } from "@/lib/actions/flights";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type FlightRow = {
@@ -118,8 +119,15 @@ function FlightActionsCell({ row }: { row: { original: FlightRow } }) {
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Flight Management</DropdownMenuLabel>
+        <DropdownMenuItem asChild className="text-sm cursor-pointer">
+          <Link href={`/staff/flights/${row.original.flightId}/manifest`}>
+            View Manifest
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Update Operational Status</DropdownMenuLabel>
         {["SCHEDULED", "BOARDING", "DELAYED", "DEPARTED", "ARRIVED", "CANCELLED"].map((s) => (
           <DropdownMenuItem
             key={s}

@@ -9,11 +9,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { deletePassenger } from "@/lib/actions/staff";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export type PassengerRow = {
   passengerId: string;
@@ -46,12 +48,18 @@ function PassengerActionsCell({ row }: { row: { original: PassengerRow } }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem asChild className="text-sm cursor-pointer">
+          <Link href="/staff/reservations">
+            View Reservations
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-red-600 focus:text-red-600 text-sm"
           onClick={handleDelete}

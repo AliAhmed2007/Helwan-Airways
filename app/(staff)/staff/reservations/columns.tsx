@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { updateReservationStatus, staffCancelReservation } from "@/lib/actions/staff";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type ReservationRow = {
@@ -109,7 +110,14 @@ function ReservationActionsCell({ row }: { row: { original: ReservationRow } }) 
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Reservation Management</DropdownMenuLabel>
+        <DropdownMenuItem asChild className="text-sm cursor-pointer">
+          <Link href={`/staff/flights/${row.original.flight.flightId}/manifest`}>
+            View Flight Manifest
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
         {["PENDING", "CONFIRMED", "COMPLETED"].map((s) => (
           <DropdownMenuItem

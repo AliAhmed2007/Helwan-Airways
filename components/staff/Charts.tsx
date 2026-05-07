@@ -19,62 +19,50 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // Revenue Area Chart
 // ─────────────────────────────────────────────────────────────────────────────
-const generateRevenueData = () => {
-  const data = [];
-  const now = new Date();
-  for (let i = 13; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      revenue: Math.floor(Math.random() * 40000 + 15000),
-    });
-  }
-  return data;
-};
-
-const REVENUE_DATA = generateRevenueData();
-
-export function RevenueChart() {
+export function RevenueChart({ data = [] }: { data?: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <AreaChart data={REVENUE_DATA} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
         <defs>
           <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.5} vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+          tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+          tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
         />
         <Tooltip
           contentStyle={{
-            background: "hsl(var(--card))",
-            border: "1px solid hsl(var(--border))",
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
             borderRadius: 12,
             fontSize: 12,
+            color: "var(--color-foreground)",
+            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
           }}
+          itemStyle={{ color: "var(--color-foreground)" }}
+          labelStyle={{ color: "var(--color-foreground)", fontWeight: "bold" }}
           formatter={(value) => [`$${Number(value ?? 0).toLocaleString()}`, "Revenue"]}
         />
         <Area
           type="monotone"
           dataKey="revenue"
-          stroke="hsl(var(--primary))"
-          strokeWidth={2}
+          stroke="var(--color-chart-1)"
+          strokeWidth={2.5}
           fill="url(#revenueGradient)"
           dot={false}
-          activeDot={{ r: 4, fill: "hsl(var(--primary))" }}
+          activeDot={{ r: 5, fill: "var(--color-chart-1)", strokeWidth: 2, stroke: "var(--color-background)" }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -84,45 +72,39 @@ export function RevenueChart() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Occupancy Bar Chart
 // ─────────────────────────────────────────────────────────────────────────────
-const OCCUPANCY_DATA = [
-  { flight: "HA101", occupancy: 87 },
-  { flight: "HA102", occupancy: 62 },
-  { flight: "HA103", occupancy: 94 },
-  { flight: "HA104", occupancy: 45 },
-  { flight: "HA105", occupancy: 78 },
-  { flight: "HA106", occupancy: 55 },
-  { flight: "HA107", occupancy: 90 },
-  { flight: "HA108", occupancy: 70 },
-];
-
-export function OccupancyChart() {
+export function OccupancyChart({ data = [] }: { data?: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={OCCUPANCY_DATA} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+      <BarChart data={data} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.5} vertical={false} />
         <XAxis
           dataKey="flight"
-          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+          tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+          tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) => `${v}%`}
           domain={[0, 100]}
         />
         <Tooltip
+          cursor={{ fill: "var(--color-muted)", opacity: 0.3 }}
           contentStyle={{
-            background: "hsl(var(--card))",
-            border: "1px solid hsl(var(--border))",
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
             borderRadius: 12,
             fontSize: 12,
+            color: "var(--color-foreground)",
+            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
           }}
+          itemStyle={{ color: "var(--color-foreground)" }}
+          labelStyle={{ color: "var(--color-foreground)", fontWeight: "bold" }}
           formatter={(value) => [`${Number(value ?? 0)}%`, "Occupancy"]}
         />
-        <Bar dataKey="occupancy" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} opacity={0.85} />
+        <Bar dataKey="occupancy" fill="var(--color-chart-2)" radius={[6, 6, 0, 0]} opacity={0.8} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -131,39 +113,40 @@ export function OccupancyChart() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Check-in Status Pie Chart
 // ─────────────────────────────────────────────────────────────────────────────
-const CHECKIN_DATA = [
-  { name: "Checked In", value: 312, color: "#22c55e" },
-  { name: "Not Checked In", value: 148, color: "hsl(var(--muted-foreground))" },
-];
-
-export function CheckinStatusChart() {
+export function CheckinStatusChart({ data = [] }: { data?: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <PieChart>
         <Pie
-          data={CHECKIN_DATA}
+          data={data}
           cx="50%"
           cy="50%"
           innerRadius={60}
           outerRadius={90}
-          paddingAngle={3}
+          paddingAngle={4}
           dataKey="value"
+          stroke="none"
         >
-          {CHECKIN_DATA.map((entry, index) => (
+          {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>
         <Tooltip
           contentStyle={{
-            background: "hsl(var(--card))",
-            border: "1px solid hsl(var(--border))",
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
             borderRadius: 12,
             fontSize: 12,
+            color: "var(--color-foreground)",
+            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
           }}
+          itemStyle={{ color: "var(--color-foreground)" }}
         />
         <Legend
+          verticalAlign="bottom"
+          height={36}
           formatter={(value) => (
-            <span style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}>{value}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--color-foreground)" }}>{value}</span>
           )}
         />
       </PieChart>

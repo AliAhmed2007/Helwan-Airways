@@ -449,3 +449,138 @@ export async function refundPayment(paymentId: string) {
   revalidatePath("/staff/payments");
   return { success: true as const };
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// DASHBOARD STATS
+// ─────────────────────────────────────────────────────────────────────────────
+export async function getStaffDashboardStats() {
+  await requireStaff();
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+  fourteenDaysAgo.setHours(0, 0, 0, 0);
+
+  // 1. Revenue Today (from payments completed today)
+  const revenueTodayResult = await prisma.payment.aggregate({
+    _sum: { amount: true },
+    where: {
+      status: "COMPLETED",
+      createdAt: { gte: startOfToday, lte: endOfToday },
+    },
+  });
+  const revenueToday = Number(revenueTodayResult._sum.amount || 0);
+
+  // 2. Passengers Today (confirmed reservations for today's flights)
+  const passengersToday = await prisma.reservation.count({
+    where: {
+      status: "CONFIRMED",
+      flight: {
+        schedDeparture: { gte: startOfToday, lte: endOfToday },
+      },
+    },
+  });
+
+  // 3. Flight Stats (Today)
+  const todayFlights = await prisma.flight.findMany({
+    where: {
+      schedDeparture: { gte: startOfToday, lte: endOfToday },
+    },
+    select: { status: true, flightId: true, flightNumber: true, depAirport: { select: { iataCode: true } }, arrAirport: { select: { iataCode: true } }, schedDeparture: true },
+  });
+
+  const totalToday = todayFlights.length;
+  const delayedToday = todayFlights.filter((f) => f.status === "DELAYED").length;
+  const onTimeRate = totalToday > 0 ? Math.round(((totalToday - delayedToday) / totalToday) * 100) : 100;
+
+  // 4. Revenue Chart Data (Last 14 days)
+  const recentPayments = await prisma.payment.findMany({
+    where: {
+      status: "COMPLETED",
+      createdAt: { gte: fourteenDaysAgo },
+    },
+    select: { amount: true, createdAt: true },
+  });
+
+  const revenueByDay: Record<string, number> = {};
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    revenueByDay[label] = 0;
+  }
+
+  recentPayments.forEach((p) => {
+    const label = new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (revenueByDay[label] !== undefined) {
+      revenueByDay[label] += Number(p.amount);
+    }
+  });
+
+  const dailyRevenueData = Object.entries(revenueByDay).map(([date, revenue]) => ({
+    date,
+    revenue,
+  }));
+
+  // 5. Occupancy Data (Today's flights)
+  const flightsWithReservations = await prisma.flight.findMany({
+    where: {
+      schedDeparture: { gte: startOfToday, lte: endOfToday },
+    },
+    include: {
+      _count: { select: { reservations: { where: { status: "CONFIRMED" } } } },
+      aircraft: { select: { totalSeats: true } },
+    },
+    take: 8,
+  });
+  
+  const occupancyData = flightsWithReservations.map((f) => ({
+    flight: f.flightNumber,
+    occupancy: f.aircraft.totalSeats > 0 ? Math.round((f._count.reservations / f.aircraft.totalSeats) * 100) : 0,
+  }));
+
+  // 6. Check-in Status (Today's reservations)
+  const checkedInCount = await prisma.reservation.count({
+    where: {
+      flight: { schedDeparture: { gte: startOfToday, lte: endOfToday } },
+      checkInStatus: "CHECKED_IN",
+      status: "CONFIRMED",
+    },
+  });
+  const notCheckedInCount = await prisma.reservation.count({
+    where: {
+      flight: { schedDeparture: { gte: startOfToday, lte: endOfToday } },
+      checkInStatus: "NOT_CHECKED_IN",
+      status: "CONFIRMED",
+    },
+  });
+
+  return {
+    success: true as const,
+    data: serializePrisma({
+      revenueToday,
+      passengersToday,
+      onTimeRate,
+      delayedToday,
+      totalToday,
+      dailyRevenueData,
+      occupancyData,
+      checkInStatusData: [
+        { name: "Checked In", value: checkedInCount, color: "var(--color-chart-2)" },
+        { name: "Not Checked In", value: notCheckedInCount, color: "var(--color-muted)" },
+      ],
+      recentFlights: todayFlights.map(f => ({
+        flightId: f.flightId,
+        flightNumber: f.flightNumber,
+        depIata: f.depAirport.iataCode,
+        arrIata: f.arrAirport.iataCode,
+        time: f.schedDeparture,
+        status: f.status
+      }))
+    }),
+  };
+}

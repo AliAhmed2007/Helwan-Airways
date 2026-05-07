@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { getAllFlights } from "@/lib/actions/flights";
+import { format } from "date-fns";
+import { Plane, ArrowRight } from "lucide-react";
+import { getStaffDashboardStats } from "@/lib/actions/staff";
 import { RevenueChart, OccupancyChart, CheckinStatusChart } from "@/components/staff/Charts";
 import { KpiCard } from "@/components/staff/KpiCard";
 import { Card } from "@/components/ui/card";
-import { Plane } from "lucide-react";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const metadata = {
   title: "Staff Dashboard — Helwan Airways",
@@ -19,71 +19,74 @@ const KPI_COLORS: Record<string, string> = {
 };
 
 export default async function StaffDashboardPage() {
-  const result = await getAllFlights();
-  const flights = result.success ? result.data : [];
+  const result = await getStaffDashboardStats();
+  const stats = result.success ? result.data : null;
 
-  const todayFlights = flights.filter(
-    (f) => new Date(f.schedDeparture).toDateString() === new Date().toDateString()
-  );
-  const delayedFlights = flights.filter((f) => f.status === "DELAYED").length;
-  const totalPassengersToday = todayFlights.reduce(
-    (acc, f) => acc + f._count.reservations,
-    0
-  );
-  const onTimeFlights = todayFlights.filter(
-    (f) => f.status !== "DELAYED" && f.status !== "CANCELLED"
-  ).length;
-  const onTimeRate = todayFlights.length
-    ? Math.round((onTimeFlights / todayFlights.length) * 100)
-    : 100;
+  if (!stats) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-semibold">Failed to load dashboard statistics</h2>
+        <p className="text-muted-foreground mt-2">Please ensure your database is connected and try again.</p>
+      </div>
+    );
+  }
 
-  // PASS STRINGS FOR ICONS INSTEAD OF THE COMPONENTS
   const kpis = [
     {
       label: "Today's Revenue",
-      numericValue: 42810,
+      numericValue: stats.revenueToday,
       prefix: "$",
       suffix: "",
-      sub: "+12% from yesterday",
+      sub: "From completed payments",
       icon: "revenue" as const, 
       color: KPI_COLORS.revenue,
     },
     {
       label: "Passengers Today",
-      numericValue: totalPassengersToday,
+      numericValue: stats.passengersToday,
       prefix: "",
       suffix: "",
-      sub: `${todayFlights.length} flights`,
+      sub: `${stats.totalToday} scheduled flights`,
       icon: "passengers" as const,
       color: KPI_COLORS.passengers,
     },
     {
       label: "On-Time Rate",
-      numericValue: onTimeRate,
+      numericValue: stats.onTimeRate,
       prefix: "",
       suffix: "%",
-      sub: "Last 24 hours",
+      sub: "Today's performance",
       icon: "ontime" as const,
       color: KPI_COLORS.ontime,
     },
     {
       label: "Delayed Flights",
-      numericValue: delayedFlights,
+      numericValue: stats.delayedToday,
       prefix: "",
       suffix: "",
-      sub: "Requires attention",
+      sub: "Requires immediate attention",
       icon: "delayed" as const,
       color: KPI_COLORS.delayed,
     },
   ];
 
   return (
-    <div className="p-6 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Operations Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {format(new Date(), "EEEE, dd MMMM yyyy")} · Real-time overview
-        </p>
+    <div className="p-6 space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Operations Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1.5">
+            {format(new Date(), "EEEE, dd MMMM yyyy")} · System Health: <span className="text-emerald-500 font-medium">Optimal</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild className="rounded-xl">
+            <Link href="/staff/flights">Manage Flights</Link>
+          </Button>
+          <Button size="sm" asChild className="rounded-xl">
+            <Link href="/staff/reservations">View Reservations</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -96,77 +99,95 @@ export default async function StaffDashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-5 rounded-2xl border-border/50">
-          <div className="mb-4">
-            <h3 className="font-semibold text-sm">Daily Revenue</h3>
-            <p className="text-xs text-muted-foreground">Last 14 days</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-6 lg:col-span-2 rounded-2xl border-border/40 shadow-sm">
+          <div className="mb-6">
+            <h3 className="font-semibold text-sm">Revenue Trends</h3>
+            <p className="text-xs text-muted-foreground">Daily earnings over the last 14 days</p>
           </div>
-          <RevenueChart />
+          <RevenueChart data={stats.dailyRevenueData} />
         </Card>
 
-        <Card className="p-5 rounded-2xl border-border/50">
-          <div className="mb-4">
-            <h3 className="font-semibold text-sm">Flight Occupancy</h3>
-            <p className="text-xs text-muted-foreground">Today's flights</p>
+        <Card className="p-6 rounded-2xl border-border/40 shadow-sm">
+          <div className="mb-6">
+            <h3 className="font-semibold text-sm">Check-in Progress</h3>
+            <p className="text-xs text-muted-foreground">Real-time status for today's departures</p>
           </div>
-          <OccupancyChart />
+          <CheckinStatusChart data={stats.checkInStatusData} />
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-5 rounded-2xl border-border/50">
-          <div className="mb-4">
-            <h3 className="font-semibold text-sm">Check-in Status</h3>
-            <p className="text-xs text-muted-foreground">All passengers today</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-6 rounded-2xl border-border/40 shadow-sm">
+          <div className="mb-6">
+            <h3 className="font-semibold text-sm">Capacity Analytics</h3>
+            <p className="text-xs text-muted-foreground">Load factors for today's top flights</p>
           </div>
-          <CheckinStatusChart />
+          <OccupancyChart data={stats.occupancyData} />
         </Card>
 
-        <Card className="p-5 rounded-2xl border-border/50">
-          <div className="mb-4">
-            <h3 className="font-semibold text-sm">Today's Flights</h3>
-            <p className="text-xs text-muted-foreground">{todayFlights.length} scheduled</p>
+        <Card className="p-6 lg:col-span-2 rounded-2xl border-border/40 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="font-semibold text-sm">Active Flight Operations</h3>
+              <p className="text-xs text-muted-foreground">{stats.totalToday} flights scheduled for today</p>
+            </div>
+            <Button variant="ghost" size="sm" asChild className="text-xs h-8">
+              <Link href="/staff/flights">View all <ArrowRight className="ml-1 h-3 w-3" /></Link>
+            </Button>
           </div>
-          <div className="space-y-2 overflow-y-auto max-h-[220px]">
-            {todayFlights.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No flights today</p>
+          
+          <div className="space-y-1">
+            {stats.recentFlights.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-sm text-muted-foreground">No flight operations for today</p>
+              </div>
             ) : (
-              todayFlights.map((flight) => (
-                <a
-                  key={flight.flightId}
-                  href={`/staff/flights/${flight.flightId}/manifest`}
-                  className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Plane className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="font-mono text-sm font-semibold">{flight.flightNumber}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {flight.depAirport.iataCode}→{flight.arrAirport.iataCode}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(flight.schedDeparture), "HH:mm")}
-                    </span>
-                    <span
-                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                        flight.status === "DELAYED"
-                          ? "bg-amber-500/10 text-amber-600"
-                          : flight.status === "BOARDING"
-                          ? "bg-blue-500/10 text-blue-600"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {flight.status}
-                    </span>
-                  </div>
-                </a>
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {stats.recentFlights.map((flight: any) => (
+                  <Link
+                    key={flight.flightId}
+                    href={`/staff/flights/${flight.flightId}/manifest`}
+                    className="flex items-center justify-between p-3.5 rounded-xl border border-border/20 bg-muted/30 hover:bg-muted/80 transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center border border-border/50 group-hover:border-primary/30 transition-colors">
+                        <Plane className="h-4 w-4 text-primary/70" />
+                      </div>
+                      <div>
+                        <div className="font-mono text-sm font-bold tracking-tight">{flight.flightNumber}</div>
+                        <div className="text-[10px] text-muted-foreground uppercase font-medium">
+                          {flight.depIata} <ArrowRight className="inline h-2 w-2 mx-0.5" /> {flight.arrIata}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-semibold">
+                        {format(new Date(flight.time), "HH:mm")}
+                      </div>
+                      <span
+                        className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
+                          flight.status === "DELAYED"
+                            ? "bg-amber-500/10 text-amber-600"
+                            : flight.status === "BOARDING"
+                            ? "bg-blue-500/10 text-blue-600"
+                            : flight.status === "ARRIVED"
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : "bg-background/80 text-muted-foreground"
+                        }`}
+                      >
+                        {flight.status}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             )}
           </div>
         </Card>
       </div>
     </div>
   );
+}
+ );
 }
