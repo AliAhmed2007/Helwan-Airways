@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -111,31 +112,35 @@ function ReservationActionsCell({ row }: { row: { original: ReservationRow } }) 
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Reservation Management</DropdownMenuLabel>
-        <DropdownMenuItem asChild className="text-sm cursor-pointer">
-          <Link href={`/staff/flights/${row.original.flight.flightId}/manifest`}>
-            View Flight Manifest
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
-        {["PENDING", "CONFIRMED", "COMPLETED"].map((s) => (
-          <DropdownMenuItem
-            key={s}
-            onClick={() => handleStatusUpdate(s)}
-            disabled={s === row.original.status}
-            className="text-sm"
-          >
-            {s}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Reservation Management</DropdownMenuLabel>
+          <DropdownMenuItem asChild className="text-sm cursor-pointer">
+            <Link href={`/staff/flights/${row.original.flight.flightId}/manifest`}>
+              View Flight Manifest
+            </Link>
           </DropdownMenuItem>
-        ))}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
+          {["PENDING", "CONFIRMED", "COMPLETED"].map((s) => (
+            <DropdownMenuItem
+              key={s}
+              onClick={() => handleStatusUpdate(s)}
+              disabled={s === row.original.status}
+              className="text-sm"
+            >
+              {s}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-red-600 focus:text-red-600 text-sm"
           onClick={handleCancel}
           disabled={row.original.status === "CANCELLED"}
         >
-          Cancel & Refund
+          Cancel &amp; Refund
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

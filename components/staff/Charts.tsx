@@ -14,6 +14,8 @@ import {
   Pie,
   Cell,
   Legend,
+  RadialBarChart,
+  RadialBar,
 } from "recharts";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -151,5 +153,77 @@ export function CheckinStatusChart({ data = [] }: { data?: any[] }) {
         />
       </PieChart>
     </ResponsiveContainer>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Class Breakdown Radial Bar Chart
+// Shows First / Business / Economy booking distribution
+// ─────────────────────────────────────────────────────────────────────────────
+export function ClassBreakdownChart({ data = [] }: { data?: { class: string; bookings: number; color: string }[] }) {
+  const total = data.reduce((sum, d) => sum + d.bookings, 0);
+
+  // RadialBarChart needs a numeric `fill` key; we use CSS vars mapped to chart colors
+  const COLORS: Record<string, string> = {
+    First:    "oklch(0.72 0.16 80)",   // amber
+    Business: "oklch(0.62 0.22 310)",  // violet
+    Economy:  "oklch(0.55 0.22 264)",  // indigo
+  };
+
+  const chartData = data.map((d) => ({
+    name:     d.class,
+    bookings: d.bookings,
+    fill:     COLORS[d.class] ?? "var(--color-chart-1)",
+    // percentage for label
+    pct: total > 0 ? Math.round((d.bookings / total) * 100) : 0,
+  }));
+
+  return (
+    <div className="flex flex-col gap-4">
+      <ResponsiveContainer width="100%" height={220}>
+        <RadialBarChart
+          cx="50%"
+          cy="50%"
+          innerRadius="30%"
+          outerRadius="90%"
+          barSize={18}
+          data={chartData}
+          startAngle={90}
+          endAngle={-270}
+        >
+          <RadialBar
+            dataKey="bookings"
+            cornerRadius={8}
+            background={{ fill: "var(--color-muted)", fillOpacity: 0.3 }}
+          />
+          <Tooltip
+            contentStyle={{
+              background: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 12,
+              fontSize: 12,
+              color: "var(--color-foreground)",
+              boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+            }}
+            itemStyle={{ color: "var(--color-foreground)" }}
+            formatter={(value, name) => [`${value} bookings`, name]}
+          />
+        </RadialBarChart>
+      </ResponsiveContainer>
+
+      {/* Legend with percentages */}
+      <div className="flex justify-center gap-5">
+        {chartData.map((d) => (
+          <div key={d.name} className="flex items-center gap-1.5 text-xs">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ background: d.fill }}
+            />
+            <span className="text-muted-foreground">{d.name}</span>
+            <span className="font-semibold tabular-nums">{d.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { Plane, ArrowRight } from "lucide-react";
 import { getStaffDashboardStats } from "@/lib/actions/staff";
-import { RevenueChart, OccupancyChart, CheckinStatusChart } from "@/components/staff/Charts";
+import { RevenueChart, OccupancyChart, CheckinStatusChart, ClassBreakdownChart } from "@/components/staff/Charts";
 import { KpiCard } from "@/components/staff/KpiCard";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
@@ -151,16 +151,28 @@ export default async function StaffDashboardPage() {
         </Card>
       </div>
 
-      {/* ── Occupancy Chart Row (full-width) ────────────────────────────────── */}
-      <Card className="p-6 rounded-2xl border-border/40 shadow-sm">
-        <div className="mb-5">
-          <h3 className="font-semibold text-sm">Capacity Analytics</h3>
-          <p className="text-xs text-muted-foreground">
-            Load factors for today&apos;s flights
-          </p>
-        </div>
-        <OccupancyChart data={stats.occupancyData} />
-      </Card>
+      {/* ── Occupancy + Class Breakdown Row (2 equal columns) ──────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6 rounded-2xl border-border/40 shadow-sm">
+          <div className="mb-5">
+            <h3 className="font-semibold text-sm">Capacity Analytics</h3>
+            <p className="text-xs text-muted-foreground">
+              Load factors for today&apos;s flights
+            </p>
+          </div>
+          <OccupancyChart data={stats.occupancyData} />
+        </Card>
+
+        <Card className="p-6 rounded-2xl border-border/40 shadow-sm">
+          <div className="mb-5">
+            <h3 className="font-semibold text-sm">Class Distribution</h3>
+            <p className="text-xs text-muted-foreground">
+              Confirmed bookings split by travel class
+            </p>
+          </div>
+          <ClassBreakdownChart data={stats.classBreakdownData} />
+        </Card>
+      </div>
 
       {/* ── Active Flights Table (full-width) ───────────────────────────────── */}
       <Card className="p-6 rounded-2xl border-border/40 shadow-sm">

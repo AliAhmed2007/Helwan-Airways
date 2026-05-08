@@ -559,6 +559,13 @@ export async function getStaffDashboardStats() {
     },
   });
 
+  // 7. Reservation Class Breakdown (all confirmed, for radar/radial chart)
+  const [firstCount, businessCount, economyCount] = await Promise.all([
+    prisma.reservation.count({ where: { status: "CONFIRMED", travelClass: "FIRST" } }),
+    prisma.reservation.count({ where: { status: "CONFIRMED", travelClass: "BUSINESS" } }),
+    prisma.reservation.count({ where: { status: "CONFIRMED", travelClass: "ECONOMY" } }),
+  ]);
+
   return {
     success: true as const,
     data: serializePrisma({
@@ -570,17 +577,22 @@ export async function getStaffDashboardStats() {
       dailyRevenueData,
       occupancyData,
       checkInStatusData: [
-        { name: "Checked In", value: checkedInCount, color: "var(--color-chart-2)" },
+        { name: "Checked In",     value: checkedInCount,    color: "var(--color-chart-2)" },
         { name: "Not Checked In", value: notCheckedInCount, color: "var(--color-muted)" },
       ],
+      classBreakdownData: [
+        { class: "First",    bookings: firstCount,    color: "var(--color-chart-3)" },
+        { class: "Business", bookings: businessCount, color: "var(--color-chart-4)" },
+        { class: "Economy",  bookings: economyCount,  color: "var(--color-chart-1)" },
+      ],
       recentFlights: todayFlights.map(f => ({
-        flightId: f.flightId,
+        flightId:     f.flightId,
         flightNumber: f.flightNumber,
-        depIata: f.depAirport.iataCode,
-        arrIata: f.arrAirport.iataCode,
-        time: f.schedDeparture,
-        status: f.status
-      }))
+        depIata:      f.depAirport.iataCode,
+        arrIata:      f.arrAirport.iataCode,
+        time:         f.schedDeparture,
+        status:       f.status,
+      })),
     }),
   };
 }

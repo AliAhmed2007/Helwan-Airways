@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -85,17 +86,19 @@ function BaggageActionsCell({ row }: { row: { original: BaggageRow } }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
-        {["CHECKED_IN", "LOADED", "IN_TRANSIT", "DELIVERED", "LOST"].map((s) => (
-          <DropdownMenuItem
-            key={s}
-            onClick={() => handleStatusUpdate(s)}
-            disabled={s === row.original.status}
-            className="text-sm"
-          >
-            {s.replace(/_/g, " ")}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
+          {["CHECKED_IN", "LOADED", "IN_TRANSIT", "DELIVERED", "LOST"].map((s) => (
+            <DropdownMenuItem
+              key={s}
+              onClick={() => handleStatusUpdate(s)}
+              disabled={s === row.original.status}
+              className="text-sm"
+            >
+              {s.replace(/_/g, " ")}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

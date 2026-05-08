@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -120,24 +121,28 @@ function FlightActionsCell({ row }: { row: { original: FlightRow } }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Flight Management</DropdownMenuLabel>
-        <DropdownMenuItem asChild className="text-sm cursor-pointer">
-          <Link href={`/staff/flights/${row.original.flightId}/manifest`}>
-            View Manifest
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Update Operational Status</DropdownMenuLabel>
-        {["SCHEDULED", "BOARDING", "DELAYED", "DEPARTED", "ARRIVED", "CANCELLED"].map((s) => (
-          <DropdownMenuItem
-            key={s}
-            onClick={() => handleStatusUpdate(s)}
-            disabled={s === row.original.status}
-            className="text-sm"
-          >
-            {s}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Flight Management</DropdownMenuLabel>
+          <DropdownMenuItem asChild className="text-sm cursor-pointer">
+            <Link href={`/staff/flights/${row.original.flightId}/manifest`}>
+              View Manifest
+            </Link>
           </DropdownMenuItem>
-        ))}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Update Operational Status</DropdownMenuLabel>
+          {["SCHEDULED", "BOARDING", "DELAYED", "DEPARTED", "ARRIVED", "CANCELLED"].map((s) => (
+            <DropdownMenuItem
+              key={s}
+              onClick={() => handleStatusUpdate(s)}
+              disabled={s === row.original.status}
+              className="text-sm"
+            >
+              {s}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-red-600 focus:text-red-600 text-sm"

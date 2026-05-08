@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -69,17 +70,19 @@ function AircraftActionsCell({ row }: { row: { original: AircraftRow } }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
-        {["ACTIVE", "MAINTENANCE", "RETIRED"].map((s) => (
-          <DropdownMenuItem
-            key={s}
-            onClick={() => handleStatusUpdate(s)}
-            disabled={s === row.original.status}
-            className="text-sm"
-          >
-            {s}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Update Status</DropdownMenuLabel>
+          {["ACTIVE", "MAINTENANCE", "RETIRED"].map((s) => (
+            <DropdownMenuItem
+              key={s}
+              onClick={() => handleStatusUpdate(s)}
+              disabled={s === row.original.status}
+              className="text-sm"
+            >
+              {s}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-red-600 focus:text-red-600 text-sm"
