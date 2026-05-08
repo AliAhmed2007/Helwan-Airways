@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { checkStaffRole } from "@/lib/actions/auth-guard";
 import {
   CheckInSchema,
   BaggageWeightSchema,
@@ -14,11 +15,8 @@ import {
 // Check In Passenger (staff only)
 // ─────────────────────────────────────────────────────────────────────────────
 export async function checkInPassenger(input: CheckInValues) {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  if (role !== "staff") {
-    return { success: false as const, error: "Unauthorized" };
-  }
+  const auth = await checkStaffRole();
+  if (!auth.authorized) return { success: false as const, error: auth.error };
 
   const parsed = CheckInSchema.safeParse(input);
   if (!parsed.success) {
@@ -45,11 +43,8 @@ export async function checkInPassenger(input: CheckInValues) {
 // Undo Check-In (staff only)
 // ─────────────────────────────────────────────────────────────────────────────
 export async function undoCheckIn(reservationId: string) {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  if (role !== "staff") {
-    return { success: false as const, error: "Unauthorized" };
-  }
+  const auth = await checkStaffRole();
+  if (!auth.authorized) return { success: false as const, error: auth.error };
 
   const reservation = await prisma.reservation.update({
     where: { reservationId },
@@ -66,18 +61,14 @@ export async function undoCheckIn(reservationId: string) {
 // Update Baggage Weight (staff only) — updates first checked baggage record
 // ─────────────────────────────────────────────────────────────────────────────
 export async function updateBaggageWeight(input: BaggageWeightValues) {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  if (role !== "staff") {
-    return { success: false as const, error: "Unauthorized" };
-  }
+  const authResult = await checkStaffRole();
+  if (!authResult.authorized) return { success: false as const, error: authResult.error };
 
   const parsed = BaggageWeightSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.issues[0].message };
   }
 
-  // parsed.data.bookingPassengerId is now the reservationId
   const reservation = await prisma.reservation.findUnique({
     where: { reservationId: parsed.data.bookingPassengerId },
     include: { baggage: { take: 1 } },

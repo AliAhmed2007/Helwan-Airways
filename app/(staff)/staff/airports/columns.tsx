@@ -37,7 +37,7 @@ function AirportActionsCell({ row }: { row: { original: AirportRow } }) {
       toast.success("Airport deleted");
       router.refresh();
     } else {
-      toast.error("Failed to delete airport. It may have associated flights.");
+      toast.error("Failed to delete airport. Cannot delete airports with associate flights.");
     }
   }
 

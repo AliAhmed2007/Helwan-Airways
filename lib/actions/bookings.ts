@@ -262,8 +262,17 @@ export async function getBookingById(reservationId: string) {
 // Get Flight Manifest (staff only)
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getFlightManifest(flightId: string) {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const { sessionClaims, userId } = await auth();
+  let role = (sessionClaims?.metadata as { role?: string })?.role;
+
+  // Fallback: session claims metadata may not be populated — fetch directly
+  if (!role && userId) {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    role = user.publicMetadata?.role as string | undefined;
+  }
+
   if (role !== "staff") {
     return { success: false as const, error: "Unauthorized" };
   }

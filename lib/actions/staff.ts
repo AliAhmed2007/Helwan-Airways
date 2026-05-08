@@ -94,6 +94,18 @@ export async function createFlight(data: {
 
 export async function deleteFlight(flightId: string) {
   await requireStaff();
+
+  // Block deletion if there are active (non-cancelled) reservations
+  const activeReservations = await prisma.reservation.count({
+    where: { flightId, status: { not: "CANCELLED" } },
+  });
+  if (activeReservations > 0) {
+    return {
+      success: false as const,
+      error: `Cannot delete: this flight has ${activeReservations} active reservation(s). Cancel them first.`,
+    };
+  }
+
   await prisma.flight.delete({ where: { flightId } });
   revalidatePath("/staff/flights");
   return { success: true as const };
@@ -367,6 +379,16 @@ export async function updateAircraftStatus(aircraftId: string, status: string) {
 
 export async function deleteAircraft(aircraftId: string) {
   await requireStaff();
+
+  // Block deletion if any flights reference this aircraft
+  const flightCount = await prisma.flight.count({ where: { aircraftId } });
+  if (flightCount > 0) {
+    return {
+      success: false as const,
+      error: `Cannot delete: this aircraft is assigned to ${flightCount} flight(s). Reassign or delete the flights first.`,
+    };
+  }
+
   await prisma.aircraft.delete({ where: { aircraftId } });
   revalidatePath("/staff/aircrafts");
   return { success: true as const };
@@ -402,6 +424,20 @@ export async function createAirport(data: {
 
 export async function deleteAirport(airportId: string) {
   await requireStaff();
+
+  // Block deletion if flights depart from or arrive at this airport
+  const [departing, arriving] = await Promise.all([
+    prisma.flight.count({ where: { depAirportId: airportId } }),
+    prisma.flight.count({ where: { arrAirportId: airportId } }),
+  ]);
+  const total = departing + arriving;
+  if (total > 0) {
+    return {
+      success: false as const,
+      error: `Cannot delete: this airport is referenced by ${total} flight(s) (${departing} departing, ${arriving} arriving). Delete those flights first.`,
+    };
+  }
+
   await prisma.airport.delete({ where: { airportId } });
   revalidatePath("/staff/airports");
   return { success: true as const };

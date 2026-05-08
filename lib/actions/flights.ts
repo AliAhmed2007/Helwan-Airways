@@ -9,6 +9,7 @@ import {
   type FlightStatusUpdateValues,
 } from "@/lib/schemas/flight";
 import { auth } from "@clerk/nextjs/server";
+import { checkStaffRole } from "@/lib/actions/auth-guard";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Search Flights (public) — queries FlightSchedules for a specific date
@@ -160,11 +161,8 @@ export async function getFlightById(flightId: string) {
 // Get All Flights (staff only)
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getAllFlights() {
-  const { sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  if (role !== "staff") {
-    return { success: false as const, error: "Unauthorized" };
-  }
+  const authResult = await checkStaffRole();
+  if (!authResult.authorized) return { success: false as const, error: authResult.error };
 
   const flights = await prisma.flight.findMany({
     include: {
@@ -198,11 +196,9 @@ export async function getAllFlights() {
 // Update Flight Status (staff only) — also logs to FlightStatusHistory
 // ─────────────────────────────────────────────────────────────────────────────
 export async function updateFlightStatus(input: FlightStatusUpdateValues) {
-  const { sessionClaims, userId } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-  if (role !== "staff") {
-    return { success: false as const, error: "Unauthorized" };
-  }
+  const authResult = await checkStaffRole();
+  if (!authResult.authorized) return { success: false as const, error: authResult.error };
+  const { userId } = await auth();
 
   const parsed = FlightStatusUpdateSchema.safeParse(input);
   if (!parsed.success) {

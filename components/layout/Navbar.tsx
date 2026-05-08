@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_LINKS = [
-  { href: "/",        label: "Home" },
+  { href: "/", label: "Home" },
   { href: "/flights", label: "Flights" },
   { href: "/dashboard", label: "My Trips", requiresAuth: true },
 ];
@@ -94,125 +94,126 @@ export function Navbar() {
           : "border-b border-transparent bg-background/50 backdrop-blur-md"
       )}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
+      {/* 1. Added flex items-center h-16 to this container */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center h-16">
 
-          {/* Logo */}
+        {/* 2. Left: Logo (flex-1 ensures it takes up space to push nav) */}
+        <div className="flex flex-1">
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 transition-all duration-200 group-hover:scale-110 group-hover:shadow-primary/50">
               <Plane className="h-3.5 w-3.5" />
             </div>
-            <span className="font-semibold tracking-tight text-foreground">
+            <span className="font-semibold tracking-tight text-foreground text-2xl">
               Helwan<span className="text-muted-foreground font-light"> Airways</span>
             </span>
           </Link>
+        </div>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-0.5">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
+        {/* 3. Center: Desktop Nav (shrink-0 prevents it from squishing) */}
+        <nav className="hidden md:flex items-center gap-0.5 shrink-0">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "relative px-4 py-2 text-sm rounded-full transition-all duration-200",
+                pathname === link.href
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {pathname === link.href && (
+                <motion.span
+                  layoutId="nav-pill"
+                  className="absolute inset-0 rounded-full bg-muted"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                />
+              )}
+              <span className="relative z-10">{link.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* 4. Right: Actions (flex-1 + justify-end) */}
+        <div className="flex flex-1 items-center justify-end gap-1.5">
+          <FlightSearchTrigger />
+          <DarkModeToggle />
+
+          {isSignedIn ? (
+            <div className="flex items-center gap-2.5 ml-1">
+              <Badge
+                variant={role === "staff" ? "default" : "secondary"}
                 className={cn(
-                  "relative px-4 py-2 text-sm rounded-full transition-all duration-200",
-                  pathname === link.href
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
+                  "hidden sm:inline-flex h-5 text-[10px] uppercase tracking-widest font-semibold rounded-full px-2.5",
+                  role === "staff"
+                    ? "bg-primary/10 text-primary border-primary/20"
+                    : "bg-muted text-muted-foreground border-border/50"
                 )}
               >
-                {pathname === link.href && (
-                  <motion.span
-                    layoutId="nav-pill"
-                    className="absolute inset-0 rounded-full bg-muted"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                  />
-                )}
-                <span className="relative z-10">{link.label}</span>
-              </Link>
-            ))}
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1.5 ml-auto">
-            <FlightSearchTrigger />
-            <DarkModeToggle />
-
-            {isSignedIn ? (
-              <div className="flex items-center gap-2.5 ml-1">
-                <Badge
-                  variant={role === "staff" ? "default" : "secondary"}
-                  className={cn(
-                    "hidden sm:inline-flex h-5 text-[10px] uppercase tracking-widest font-semibold rounded-full px-2.5",
-                    role === "staff"
-                      ? "bg-primary/10 text-primary border-primary/20"
-                      : "bg-muted text-muted-foreground border-border/50"
+                {role === "staff" ? "Staff" : "Passenger"}
+              </Badge>
+              <UserButton
+                appearance={{
+                  elements: { avatarBox: "h-8 w-8 ring-2 ring-primary/20" },
+                }}
+              >
+                <UserButton.MenuItems>
+                  {role === "staff" ? (
+                    <UserButton.Link
+                      label="Dashboard"
+                      labelIcon={<LayoutDashboard size={15} />}
+                      href="/staff"
+                    />
+                  ) : (
+                    <UserButton.Link
+                      label="Manage Flights"
+                      labelIcon={<CalendarDays size={15} />}
+                      href="/dashboard"
+                    />
                   )}
-                >
-                  {role === "staff" ? "Staff" : "Passenger"}
-                </Badge>
-                <UserButton
-                  appearance={{
-                    elements: { avatarBox: "h-8 w-8 ring-2 ring-primary/20" },
-                  }}
-                >
-                  <UserButton.MenuItems>
-                    {role === "staff" ? (
-                      <UserButton.Link
-                        label="Dashboard"
-                        labelIcon={<LayoutDashboard size={15} />}
-                        href="/staff"
-                      />
-                    ) : (
-                      <UserButton.Link
-                        label="Manage Flights"
-                        labelIcon={<CalendarDays size={15} />}
-                        href="/dashboard"
-                      />
-                    )}
-                  </UserButton.MenuItems>
-                </UserButton>
-              </div>
-            ) : (
-              <SignInButton mode="redirect">
-                <Button size="sm" className="ml-1 rounded-full shadow-sm shadow-primary/20 font-medium cursor-pointer">
-                  Sign In
-                </Button>
-              </SignInButton>
-            )}
+                </UserButton.MenuItems>
+              </UserButton>
+            </div>
+          ) : (
+            <SignInButton mode="redirect">
+              <Button size="sm" className="ml-1 rounded-full shadow-sm shadow-primary/20 font-medium cursor-pointer">
+                Sign In
+              </Button>
+            </SignInButton>
+          )}
 
-            {/* Mobile menu toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden h-9 w-9 ml-1"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {mobileOpen ? (
-                  <motion.span
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <X className="h-4 w-4" />
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="open"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <Menu className="h-4 w-4" />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Button>
-          </div>
+          {/* Mobile menu toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-9 w-9 ml-1"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {mobileOpen ? (
+                <motion.span
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <X className="h-4 w-4" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="open"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Menu className="h-4 w-4" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </Button>
         </div>
       </div>
 
