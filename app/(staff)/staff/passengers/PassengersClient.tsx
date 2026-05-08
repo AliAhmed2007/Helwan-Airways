@@ -13,7 +13,16 @@ export function PassengersClient({ data }: PassengersClientProps) {
       columns={columns}
       data={data}
       searchKey="email"
-      searchPlaceholder="Search by email..."
+      searchPlaceholder="Search name, email, passport…"
+      filters={[
+        {
+          columnId: "nationality",
+          label: "Nationality",
+          options: Array.from(new Set(data.map((p) => p.nationality).filter(Boolean)))
+            .sort()
+            .map((n) => ({ label: n as string, value: n as string })),
+        },
+      ]}
     />
   );
 }

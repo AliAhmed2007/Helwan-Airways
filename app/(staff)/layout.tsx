@@ -41,11 +41,11 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-border/50 bg-card flex flex-col">
+    <div className="flex h-screen overflow-hidden bg-background">
+      {/* Sidebar — fixed to viewport height, never scrolls */}
+      <aside className="w-64 shrink-0 border-r border-border/50 bg-card flex flex-col h-screen sticky top-0">
         {/* Brand */}
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-border/50">
+        <div className="h-16 px-6 flex items-center gap-3 border-b border-border/50 shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Plane className="h-4 w-4 text-primary-foreground" />
           </div>
@@ -55,15 +55,15 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 p-4 space-y-0.5">
+        {/* Nav — takes remaining space, scrollable if many items */}
+        <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
           {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => (
             <StaffNavLink key={href} href={href} label={label} icon={<Icon className="h-4 w-4" />} exact={exact} />
           ))}
         </nav>
 
-        {/* User footer */}
-        <div className="p-4 border-t border-border/50">
+        {/* User profile — always pinned to bottom */}
+        <div className="p-4 border-t border-border/50 shrink-0">
           <div className="flex items-center gap-3">
             <UserButton
               appearance={{ elements: { avatarBox: "h-8 w-8" } }}
@@ -76,8 +76,8 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 min-w-0 overflow-auto">
+      {/* Main content — only this area scrolls */}
+      <main className="flex-1 min-w-0 overflow-y-auto">
         {children}
       </main>
     </div>

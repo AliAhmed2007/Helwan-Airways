@@ -12,8 +12,23 @@ export function AirportsClient({ data }: AirportsClientProps) {
     <DataTable
       columns={columns}
       data={data}
-      searchKey="iataCode"
-      searchPlaceholder="Search IATA code..."
+      searchPlaceholder="Search IATA code, city, country…"
+      filters={[
+        {
+          columnId: "country",
+          label: "Country",
+          options: Array.from(new Set(data.map((a) => a.country)))
+            .sort()
+            .map((c) => ({ label: c, value: c })),
+        },
+        {
+          columnId: "timezone",
+          label: "Timezone",
+          options: Array.from(new Set(data.map((a) => a.timezone)))
+            .sort()
+            .map((t) => ({ label: t, value: t })),
+        },
+      ]}
     />
   );
 }

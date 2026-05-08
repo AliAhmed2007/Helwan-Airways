@@ -33,7 +33,21 @@ export function FlightsClient({ flights, schedules, statusHistory }: FlightsClie
           columns={flightColumns}
           data={flights}
           searchKey="flightNumber"
-          searchPlaceholder="Search flight number..."
+          searchPlaceholder="Search flight number…"
+          filters={[
+            {
+              columnId: "status",
+              label: "Status",
+              options: [
+                { label: "Scheduled",  value: "SCHEDULED" },
+                { label: "Boarding",   value: "BOARDING" },
+                { label: "Delayed",    value: "DELAYED" },
+                { label: "Departed",   value: "DEPARTED" },
+                { label: "Arrived",    value: "ARRIVED" },
+                { label: "Cancelled",  value: "CANCELLED" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
 
@@ -41,8 +55,19 @@ export function FlightsClient({ flights, schedules, statusHistory }: FlightsClie
         <DataTable
           columns={scheduleColumns}
           data={schedules}
-          searchKey="scheduleStatus"
-          searchPlaceholder="Search by status..."
+          searchPlaceholder="Search gate, terminal…"
+          filters={[
+            {
+              columnId: "scheduleStatus",
+              label: "Status",
+              options: [
+                { label: "On Time",   value: "ON_TIME" },
+                { label: "Delayed",   value: "DELAYED" },
+                { label: "Cancelled", value: "CANCELLED" },
+                { label: "Completed", value: "COMPLETED" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
 
@@ -50,8 +75,21 @@ export function FlightsClient({ flights, schedules, statusHistory }: FlightsClie
         <DataTable
           columns={statusHistoryColumns}
           data={statusHistory}
-          searchKey="newStatus"
-          searchPlaceholder="Search by status..."
+          searchPlaceholder="Search reason, changed by…"
+          filters={[
+            {
+              columnId: "newStatus",
+              label: "New Status",
+              options: [
+                { label: "Scheduled",  value: "SCHEDULED" },
+                { label: "Boarding",   value: "BOARDING" },
+                { label: "Delayed",    value: "DELAYED" },
+                { label: "Departed",   value: "DEPARTED" },
+                { label: "Arrived",    value: "ARRIVED" },
+                { label: "Cancelled",  value: "CANCELLED" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
     </Tabs>

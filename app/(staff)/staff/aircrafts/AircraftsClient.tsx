@@ -13,7 +13,18 @@ export function AircraftsClient({ data }: AircraftsClientProps) {
       columns={columns}
       data={data}
       searchKey="registrationNum"
-      searchPlaceholder="Search registration number..."
+      searchPlaceholder="Search registration, model, manufacturer…"
+      filters={[
+        {
+          columnId: "status",
+          label: "Status",
+          options: [
+            { label: "Active",      value: "ACTIVE" },
+            { label: "Maintenance", value: "MAINTENANCE" },
+            { label: "Retired",     value: "RETIRED" },
+          ],
+        },
+      ]}
     />
   );
 }

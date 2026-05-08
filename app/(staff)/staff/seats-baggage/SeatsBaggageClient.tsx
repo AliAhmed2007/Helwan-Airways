@@ -29,7 +29,18 @@ export function SeatsBaggageClient({ seats, baggage }: SeatsBaggageClientProps) 
           columns={seatColumns}
           data={seats}
           searchKey="seatNumber"
-          searchPlaceholder="Search seat number..."
+          searchPlaceholder="Search seat number…"
+          filters={[
+            {
+              columnId: "class",
+              label: "Class",
+              options: [
+                { label: "First",    value: "FIRST" },
+                { label: "Business", value: "BUSINESS" },
+                { label: "Economy",  value: "ECONOMY" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
 
@@ -38,7 +49,29 @@ export function SeatsBaggageClient({ seats, baggage }: SeatsBaggageClientProps) 
           columns={baggageColumns}
           data={baggage}
           searchKey="tag"
-          searchPlaceholder="Search baggage tag..."
+          searchPlaceholder="Search baggage tag…"
+          filters={[
+            {
+              columnId: "status",
+              label: "Status",
+              options: [
+                { label: "Checked In",  value: "CHECKED_IN" },
+                { label: "Loaded",      value: "LOADED" },
+                { label: "In Transit",  value: "IN_TRANSIT" },
+                { label: "Delivered",   value: "DELIVERED" },
+                { label: "Lost",        value: "LOST" },
+              ],
+            },
+            {
+              columnId: "baggageType",
+              label: "Type",
+              options: [
+                { label: "Checked",   value: "CHECKED" },
+                { label: "Carry-on",  value: "CARRY_ON" },
+                { label: "Oversized", value: "OVERSIZED" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
     </Tabs>

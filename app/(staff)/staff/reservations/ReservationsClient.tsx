@@ -29,7 +29,27 @@ export function ReservationsClient({ reservations, history }: ReservationsClient
           columns={reservationColumns}
           data={reservations}
           searchKey="bookingRef"
-          searchPlaceholder="Search booking reference..."
+          searchPlaceholder="Search booking reference…"
+          filters={[
+            {
+              columnId: "status",
+              label: "Status",
+              options: [
+                { label: "Pending",   value: "PENDING" },
+                { label: "Confirmed", value: "CONFIRMED" },
+                { label: "Cancelled", value: "CANCELLED" },
+                { label: "Completed", value: "COMPLETED" },
+              ],
+            },
+            {
+              columnId: "checkInStatus",
+              label: "Check-in",
+              options: [
+                { label: "Checked In",     value: "CHECKED_IN" },
+                { label: "Not Checked In", value: "NOT_CHECKED_IN" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
 
@@ -37,8 +57,19 @@ export function ReservationsClient({ reservations, history }: ReservationsClient
         <DataTable
           columns={historyColumns}
           data={history}
-          searchKey="reason"
-          searchPlaceholder="Search by reason..."
+          searchPlaceholder="Search reason…"
+          filters={[
+            {
+              columnId: "newStatus",
+              label: "New Status",
+              options: [
+                { label: "Pending",   value: "PENDING" },
+                { label: "Confirmed", value: "CONFIRMED" },
+                { label: "Cancelled", value: "CANCELLED" },
+                { label: "Completed", value: "COMPLETED" },
+              ],
+            },
+          ]}
         />
       </TabsContent>
     </Tabs>
