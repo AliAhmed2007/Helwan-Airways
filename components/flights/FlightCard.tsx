@@ -19,7 +19,7 @@ import { format, differenceInMinutes } from "date-fns";
 
 type Airport = { iataCode: string; city: string; airportName: string };
 
-type Seat = { seatId: string; class: string; reservations: { reservationId: string }[] };
+type Seat = { seatId: string; class: string; reservations: { reservationId: string; scheduleId: string }[] };
 
 type Flight = {
   flightId: string;
@@ -74,11 +74,11 @@ export function FlightCard({ flight, passengers, scheduleId, index = 0 }: Flight
 
   const dep = new Date(flight.departureDate ?? flight.schedDeparture);
   const arr = new Date(flight.schedArrival);
-  const availableEconomy = flight.aircraft.seats.filter((s) => s.class === "ECONOMY" && s.reservations.length === 0).length;
-  const availableBusiness = flight.aircraft.seats.filter((s) => s.class === "BUSINESS" && s.reservations.length === 0).length;
-  const availableFirst = flight.aircraft.seats.filter((s) => s.class === "FIRST" && s.reservations.length === 0).length;
+  const availableEconomy = flight.aircraft.seats.filter((s) => s.class === "ECONOMY" && !s.reservations.some(r => r.scheduleId === scheduleId)).length;
+  const availableBusiness = flight.aircraft.seats.filter((s) => s.class === "BUSINESS" && !s.reservations.some(r => r.scheduleId === scheduleId)).length;
+  const availableFirst = flight.aircraft.seats.filter((s) => s.class === "FIRST" && !s.reservations.some(r => r.scheduleId === scheduleId)).length;
 
-  const availableSeats = flight.aircraft.seats.filter((s) => s.reservations.length === 0).length;
+  const availableSeats = flight.aircraft.seats.filter((s) => !s.reservations.some(r => r.scheduleId === scheduleId)).length;
   const occupancyPct = Math.round(
     ((flight.aircraft.totalSeats - availableSeats) / flight.aircraft.totalSeats) * 100
   );

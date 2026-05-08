@@ -497,10 +497,6 @@ export async function getStaffDashboardStats() {
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
 
-  const fourteenDaysAgo = new Date();
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  fourteenDaysAgo.setHours(0, 0, 0, 0);
-
   // 1. Revenue Today (from payments completed today)
   const revenueTodayResult = await prisma.payment.aggregate({
     _sum: { amount: true },
@@ -533,31 +529,36 @@ export async function getStaffDashboardStats() {
   const delayedToday = todayFlights.filter((f) => f.status === "DELAYED").length;
   const onTimeRate = totalToday > 0 ? Math.round(((totalToday - delayedToday) / totalToday) * 100) : 100;
 
-  // 4. Revenue Chart Data (Last 14 days)
+  // 4. Revenue Chart Data (Last 6 months, grouped by month)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  sixMonthsAgo.setDate(1);
+  sixMonthsAgo.setHours(0, 0, 0, 0);
+
   const recentPayments = await prisma.payment.findMany({
     where: {
       status: "COMPLETED",
-      createdAt: { gte: fourteenDaysAgo },
+      paymentDate: { gte: sixMonthsAgo },
     },
-    select: { amount: true, createdAt: true },
+    select: { amount: true, paymentDate: true },
   });
 
-  const revenueByDay: Record<string, number> = {};
-  for (let i = 13; i >= 0; i--) {
+  const revenueByMonth: Record<string, number> = {};
+  for (let i = 5; i >= 0; i--) {
     const d = new Date();
-    d.setDate(d.getDate() - i);
-    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    revenueByDay[label] = 0;
+    d.setMonth(d.getMonth() - i);
+    const label = d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+    revenueByMonth[label] = 0;
   }
 
   recentPayments.forEach((p) => {
-    const label = new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    if (revenueByDay[label] !== undefined) {
-      revenueByDay[label] += Number(p.amount);
+    const label = new Date(p.paymentDate).toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+    if (revenueByMonth[label] !== undefined) {
+      revenueByMonth[label] += Number(p.amount);
     }
   });
 
-  const dailyRevenueData = Object.entries(revenueByDay).map(([date, revenue]) => ({
+  const dailyRevenueData = Object.entries(revenueByMonth).map(([date, revenue]) => ({
     date,
     revenue,
   }));

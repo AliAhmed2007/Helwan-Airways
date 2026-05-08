@@ -7,7 +7,7 @@ import { Plane } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ flightId: string }>;
-  searchParams: Promise<{ passengers?: string }>;
+  searchParams: Promise<{ passengers?: string; scheduleId?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -20,12 +20,12 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
   if (!userId) redirect("/sign-in");
 
   const { flightId } = await params;
-  const { passengers = "1" } = await searchParams;
+  const { passengers = "1", scheduleId } = await searchParams;
   const result = await getFlightById(flightId);
   if (!result.success) notFound();
 
   const flight = result.data;
-  const availableSeats = flight.aircraft.seats.filter((s) => s.reservations.length === 0).length;
+  const availableSeats = flight.aircraft.seats.filter((s) => !s.reservations.some(r => r.scheduleId === scheduleId)).length;
 
   const requestedPassengers = parseInt(passengers) || 1;
   const passengerCount = Math.min(Math.max(requestedPassengers, 1), availableSeats, 9);
@@ -85,7 +85,7 @@ export default async function BookingPage({ params, searchParams }: PageProps) {
             seatNumber: s.seatNumber,
             class: s.class,
             extraPrice: Number(s.extraPrice),
-            isOccupied: s.reservations.length > 0,
+            isOccupied: s.reservations.some(r => r.scheduleId === scheduleId),
           }))}
           passengerCount={passengerCount}
         />

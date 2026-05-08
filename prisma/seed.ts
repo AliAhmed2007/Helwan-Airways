@@ -20,6 +20,7 @@ import {
   AircraftStatus,
 } from "../generated/prisma/client";
 import * as dotenv from "dotenv";
+import { randomUUID } from "crypto";
 dotenv.config({ path: ".env.local" });
 
 // ─── DB Connection ───────────────────────────────────────────────────────────
@@ -88,14 +89,14 @@ type IataCode = (typeof AIRPORTS)[number]["iataCode"];
 
 // ─── Aircraft defs ─────────────────────────────────────────────────────────────
 const AIRCRAFT_DEFS = [
-  { reg: "SU-GBX", model: "Boeing 737-800",          manufacturer: "Boeing",  total: 162, first: 0,  business: 12, economy: 150 },
-  { reg: "SU-GCY", model: "Boeing 737 MAX 8",        manufacturer: "Boeing",  total: 162, first: 0,  business: 12, economy: 150 },
-  { reg: "SU-GDZ", model: "Boeing 777-300ER",        manufacturer: "Boeing",  total: 360, first: 8,  business: 42, economy: 310 },
-  { reg: "SU-GEA", model: "Boeing 787-9 Dreamliner", manufacturer: "Boeing",  total: 298, first: 0,  business: 38, economy: 260 },
-  { reg: "SU-GFB", model: "Airbus A320neo",          manufacturer: "Airbus",  total: 150, first: 0,  business: 12, economy: 138 },
-  { reg: "SU-GGC", model: "Airbus A321neo",          manufacturer: "Airbus",  total: 194, first: 0,  business: 16, economy: 178 },
-  { reg: "SU-GHD", model: "Airbus A330-300",         manufacturer: "Airbus",  total: 277, first: 0,  business: 36, economy: 241 },
-  { reg: "SU-GIE", model: "Airbus A350-900",         manufacturer: "Airbus",  total: 325, first: 4,  business: 42, economy: 279 },
+  { reg: "SU-GBX", model: "Boeing 737-800",          manufacturer: "Boeing",  total: 160, first: 32, business: 48,  economy: 80 },
+  { reg: "SU-GCY", model: "Boeing 737 MAX 8",        manufacturer: "Boeing",  total: 160, first: 32, business: 48,  economy: 80 },
+  { reg: "SU-GDZ", model: "Boeing 777-300ER",        manufacturer: "Boeing",  total: 360, first: 72, business: 108, economy: 180 },
+  { reg: "SU-GEA", model: "Boeing 787-9 Dreamliner", manufacturer: "Boeing",  total: 300, first: 60, business: 90,  economy: 150 },
+  { reg: "SU-GFB", model: "Airbus A320neo",          manufacturer: "Airbus",  total: 150, first: 30, business: 45,  economy: 75 },
+  { reg: "SU-GGC", model: "Airbus A321neo",          manufacturer: "Airbus",  total: 200, first: 40, business: 60,  economy: 100 },
+  { reg: "SU-GHD", model: "Airbus A330-300",         manufacturer: "Airbus",  total: 280, first: 56, business: 84,  economy: 140 },
+  { reg: "SU-GIE", model: "Airbus A350-900",         manufacturer: "Airbus",  total: 330, first: 66, business: 99,  economy: 165 },
 ] as const;
 
 // Model → registrationNum lookup
@@ -122,79 +123,83 @@ type FlightDef = {
 };
 
 function buildFlightDefs(): FlightDef[] {
+  const HIST_ROUTES: Array<{ from: IataCode; to: IataCode; dur: number; price: number; model?: string }> = [
+    { from: "CAI", to: "DXB", dur: 3.5, price: 420, model: "Boeing 737-800" },
+    { from: "CAI", to: "LHR", dur: 6.5, price: 680, model: "Boeing 787-9 Dreamliner" },
+    { from: "CAI", to: "IST", dur: 3,   price: 310, model: "Airbus A320neo" },
+    { from: "CAI", to: "CDG", dur: 6,   price: 590, model: "Airbus A330-300" },
+    { from: "CAI", to: "RUH", dur: 2.5, price: 380, model: "Boeing 737 MAX 8" },
+    { from: "DXB", to: "CAI", dur: 3.5, price: 390, model: "Airbus A321neo" },
+    { from: "LHR", to: "CAI", dur: 6,   price: 710, model: "Boeing 777-300ER" },
+    { from: "CAI", to: "JFK", dur: 11,  price: 950, model: "Boeing 777-300ER" },
+    { from: "CAI", to: "JED", dur: 2.5, price: 290, model: "Airbus A320neo" },
+    { from: "CAI", to: "AMS", dur: 5.5, price: 540, model: "Boeing 787-9 Dreamliner" },
+    { from: "CAI", to: "FCO", dur: 4,   price: 460, model: "Airbus A321neo" },
+    { from: "CAI", to: "DOH", dur: 2,   price: 350, model: "Boeing 737-800" },
+    { from: "CAI", to: "FRA", dur: 5.5, price: 560, model: "Airbus A350-900" },
+    { from: "CAI", to: "HRG", dur: 1,   price: 110, model: "Airbus A320neo" },
+    { from: "CAI", to: "KWI", dur: 2,   price: 320, model: "Airbus A321neo" },
+  ];
+  const past: FlightDef[] = [];
+  const gates = ["A1","A2","B1","B2","C1","D1"];
+  let hNum = 600;
+  // 3 flights per day × 180 days = 540 historical flights
+  for (let d = 180; d >= 1; d--) {
+    for (let r = 0; r < 3; r++) {
+      const route = HIST_ROUTES[(hNum) % HIST_ROUTES.length];
+      past.push({
+        no: `HA${hNum++}`,
+        from: route.from,
+        to: route.to,
+        dayOffset: -d,
+        depHour: [6,9,13,16][hNum % 4],
+        durationH: route.dur,
+        price: route.price,
+        status: "ARRIVED" as FlightStatus,
+        gate: gates[hNum % gates.length],
+        terminal: hNum % 2 === 0 ? "T1" : "T2",
+        aircraftModel: route.model,
+      });
+    }
+  }
+
+  const future: FlightDef[] = [];
+  // Generate 5 flights per day for the next 30 days
+  for (let d = 0; d <= 30; d++) {
+    for (let r = 0; r < 5; r++) {
+      const route = HIST_ROUTES[(hNum) % HIST_ROUTES.length];
+      const isRoundTrip = Math.random() < 0.3;
+      future.push({
+        no: `HA${hNum++}`,
+        from: route.from,
+        to: route.to,
+        dayOffset: d,
+        depHour: [5, 8, 12, 15, 20][hNum % 5],
+        durationH: route.dur,
+        price: route.price,
+        status: "SCHEDULED" as FlightStatus,
+        gate: gates[hNum % gates.length],
+        terminal: hNum % 2 === 0 ? "T1" : "T2",
+        aircraftModel: route.model,
+        isRoundTrip,
+        returnDayOffset: isRoundTrip ? d + Math.floor(Math.random() * 10) + 2 : undefined,
+        returnHour: isRoundTrip ? 10 + Math.floor(Math.random() * 8) : undefined,
+      });
+    }
+  }
+
+  // Set some today's flights to different statuses for realism
+  const todayFlights = future.filter(f => f.dayOffset === 0);
+  if (todayFlights.length >= 5) {
+    todayFlights[0].status = "ARRIVED";
+    todayFlights[1].status = "DEPARTED";
+    todayFlights[2].status = "BOARDING";
+    todayFlights[3].status = "DELAYED";
+  }
+
   return [
-    // ── TODAY ──────────────────────────────────────────────────────────────
-    { no: "HA101", from: "CAI", to: "DXB", dayOffset: 0, depHour: 7,  durationH: 3.5,  price: 420,  status: "BOARDING",   gate: "B12", terminal: "T1", aircraftModel: "Boeing 737-800" },
-    { no: "HA102", from: "CAI", to: "LHR", dayOffset: 0, depHour: 9,  durationH: 6.5,  price: 680,  status: "DELAYED",    gate: "A7",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner", isRoundTrip: true, returnDayOffset: 5, returnHour: 14 },
-    { no: "HA103", from: "CAI", to: "IST", dayOffset: 0, depHour: 6,  durationH: 3,    price: 310,  status: "DEPARTED",   gate: "B3",  terminal: "T1", aircraftModel: "Airbus A320neo" },
-    { no: "HA104", from: "CAI", to: "CDG", dayOffset: 0, depHour: 11, durationH: 6,    price: 590,  status: "SCHEDULED",  gate: "A2",  terminal: "T2", aircraftModel: "Airbus A330-300", isRoundTrip: true, returnDayOffset: 7, returnHour: 10 },
-    { no: "HA105", from: "CAI", to: "RUH", dayOffset: 0, depHour: 8,  durationH: 2.5,  price: 380,  status: "BOARDING",   gate: "B8",  terminal: "T1", aircraftModel: "Boeing 737 MAX 8" },
-    { no: "HA106", from: "DXB", to: "CAI", dayOffset: 0, depHour: 5,  durationH: 3.5,  price: 390,  status: "ARRIVED",    gate: "C4",  terminal: "T3", aircraftModel: "Airbus A321neo" },
-    { no: "HA107", from: "LHR", to: "CAI", dayOffset: 0, depHour: 7,  durationH: 6,    price: 710,  status: "DEPARTED",   gate: "D9",  terminal: "T5", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA108", from: "CAI", to: "DOH", dayOffset: 0, depHour: 14, durationH: 2,    price: 350,  status: "SCHEDULED",  gate: "F1",  terminal: "T1", aircraftModel: "Boeing 737-800" },
-    { no: "HA109", from: "CAI", to: "JED", dayOffset: 0, depHour: 10, durationH: 2.5,  price: 290,  status: "SCHEDULED",  gate: "C7",  terminal: "T1", aircraftModel: "Airbus A320neo" },
-    { no: "HA110", from: "CAI", to: "AMS", dayOffset: 0, depHour: 13, durationH: 5.5,  price: 540,  status: "SCHEDULED",  gate: "A9",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner" },
-    { no: "HA111", from: "CAI", to: "FCO", dayOffset: 0, depHour: 16, durationH: 4,    price: 460,  status: "SCHEDULED",  gate: "B5",  terminal: "T2", aircraftModel: "Airbus A321neo" },
-    { no: "HA112", from: "IST", to: "CAI", dayOffset: 0, depHour: 12, durationH: 3,    price: 295,  status: "DELAYED",    gate: "G3",  terminal: "T1", aircraftModel: "Boeing 737-800" },
-    { no: "HA113", from: "CAI", to: "KWI", dayOffset: 0, depHour: 15, durationH: 2,    price: 320,  status: "SCHEDULED",  gate: "D2",  terminal: "T1", aircraftModel: "Airbus A320neo" },
-    { no: "HA114", from: "CAI", to: "BAH", dayOffset: 0, depHour: 18, durationH: 2.5,  price: 345,  status: "SCHEDULED",  gate: "E4",  terminal: "T1", aircraftModel: "Boeing 737 MAX 8" },
-    { no: "HA115", from: "CAI", to: "HRG", dayOffset: 0, depHour: 9,  durationH: 1,    price: 110,  status: "DEPARTED",   gate: "A1",  terminal: "T1", aircraftModel: "Airbus A320neo" },
-    { no: "HA116", from: "CAI", to: "SSH", dayOffset: 0, depHour: 11, durationH: 1,    price: 120,  status: "SCHEDULED",  gate: "A3",  terminal: "T1" },
-    { no: "HA117", from: "CAI", to: "LXR", dayOffset: 0, depHour: 8,  durationH: 1.5,  price: 95,   status: "ARRIVED",    gate: "A2",  terminal: "T1" },
-    { no: "HA118", from: "CAI", to: "MCT", dayOffset: 0, depHour: 20, durationH: 3.5,  price: 410,  status: "SCHEDULED",  gate: "F3",  terminal: "T1" },
-
-    // ── TOMORROW ───────────────────────────────────────────────────────────
-    { no: "HA201", from: "CAI", to: "DXB", dayOffset: 1, depHour: 7,  durationH: 3.5,  price: 430,  status: "SCHEDULED",  gate: "B11", terminal: "T1" },
-    { no: "HA202", from: "CAI", to: "LHR", dayOffset: 1, depHour: 6,  durationH: 6.5,  price: 720,  status: "SCHEDULED",  gate: "A6",  terminal: "T2", aircraftModel: "Boeing 787-9 Dreamliner" },
-    { no: "HA203", from: "CAI", to: "JFK", dayOffset: 1, depHour: 3,  durationH: 11,   price: 950,  status: "SCHEDULED",  gate: "A1",  terminal: "T2", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA204", from: "IST", to: "CAI", dayOffset: 1, depHour: 10, durationH: 3,    price: 295,  status: "SCHEDULED" },
-    { no: "HA205", from: "CAI", to: "FRA", dayOffset: 1, depHour: 9,  durationH: 5.5,  price: 560,  status: "SCHEDULED",  gate: "A8",  terminal: "T2", isRoundTrip: true, returnDayOffset: 4, returnHour: 15 },
-    { no: "HA206", from: "CAI", to: "AMS", dayOffset: 1, depHour: 7,  durationH: 5.5,  price: 540,  status: "SCHEDULED",  gate: "A5",  terminal: "T2", aircraftModel: "Airbus A350-900", isRoundTrip: true, returnDayOffset: 8, returnHour: 11 },
-    { no: "HA207", from: "CAI", to: "DOH", dayOffset: 1, depHour: 14, durationH: 2,    price: 355,  status: "SCHEDULED" },
-    { no: "HA208", from: "CAI", to: "HRG", dayOffset: 1, depHour: 6,  durationH: 1,    price: 115,  status: "SCHEDULED" },
-    { no: "HA209", from: "CAI", to: "SSH", dayOffset: 1, depHour: 8,  durationH: 1,    price: 125,  status: "SCHEDULED" },
-    { no: "HA210", from: "CAI", to: "AUH", dayOffset: 1, depHour: 12, durationH: 3,    price: 440,  status: "SCHEDULED" },
-    { no: "HA211", from: "DXB", to: "LHR", dayOffset: 1, depHour: 5,  durationH: 7,    price: 580,  status: "SCHEDULED",  aircraftModel: "Boeing 777-300ER" },
-    { no: "HA212", from: "CAI", to: "ATH", dayOffset: 1, depHour: 10, durationH: 2.5,  price: 310,  status: "SCHEDULED" },
-    { no: "HA213", from: "CAI", to: "MAD", dayOffset: 1, depHour: 13, durationH: 5,    price: 520,  status: "SCHEDULED" },
-    { no: "HA214", from: "CAI", to: "KWI", dayOffset: 1, depHour: 16, durationH: 2,    price: 325,  status: "SCHEDULED" },
-    { no: "HA215", from: "CAI", to: "LXR", dayOffset: 1, depHour: 7,  durationH: 1.5,  price: 98,   status: "SCHEDULED" },
-
-    // ── DAY +2 ─────────────────────────────────────────────────────────────
-    { no: "HA301", from: "CAI", to: "DXB", dayOffset: 2, depHour: 8,  durationH: 3.5,  price: 415,  status: "SCHEDULED" },
-    { no: "HA302", from: "CAI", to: "HRG", dayOffset: 2, depHour: 6,  durationH: 1,    price: 108,  status: "SCHEDULED" },
-    { no: "HA303", from: "CAI", to: "SSH", dayOffset: 2, depHour: 9,  durationH: 1,    price: 118,  status: "SCHEDULED" },
-    { no: "HA304", from: "DXB", to: "LHR", dayOffset: 2, depHour: 5,  durationH: 7,    price: 570,  status: "SCHEDULED" },
-    { no: "HA305", from: "LHR", to: "JFK", dayOffset: 2, depHour: 8,  durationH: 7.5,  price: 620,  status: "SCHEDULED" },
-    { no: "HA306", from: "CAI", to: "DOH", dayOffset: 2, depHour: 10, durationH: 2,    price: 345,  status: "SCHEDULED" },
-    { no: "HA307", from: "CAI", to: "FCO", dayOffset: 2, depHour: 13, durationH: 4,    price: 465,  status: "SCHEDULED" },
-    { no: "HA308", from: "CAI", to: "NRT", dayOffset: 2, depHour: 2,  durationH: 10,   price: 1100, status: "SCHEDULED", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA309", from: "CAI", to: "RUH", dayOffset: 2, depHour: 7,  durationH: 2.5,  price: 375,  status: "SCHEDULED" },
-    { no: "HA310", from: "CAI", to: "ASW", dayOffset: 2, depHour: 11, durationH: 2,    price: 85,   status: "SCHEDULED" },
-
-    // ── DAY +3..+7 ─────────────────────────────────────────────────────────
-    { no: "HA401", from: "CAI", to: "DXB", dayOffset: 3, depHour: 7,  durationH: 3.5,  price: 425,  status: "SCHEDULED" },
-    { no: "HA402", from: "CAI", to: "LHR", dayOffset: 3, depHour: 9,  durationH: 6.5,  price: 690,  status: "SCHEDULED" },
-    { no: "HA403", from: "CAI", to: "JFK", dayOffset: 4, depHour: 3,  durationH: 11,   price: 960,  status: "SCHEDULED", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA404", from: "CAI", to: "IST", dayOffset: 4, depHour: 6,  durationH: 3,    price: 315,  status: "SCHEDULED" },
-    { no: "HA405", from: "CAI", to: "CDG", dayOffset: 5, depHour: 11, durationH: 6,    price: 595,  status: "SCHEDULED", aircraftModel: "Airbus A330-300" },
-    { no: "HA406", from: "CAI", to: "AMS", dayOffset: 5, depHour: 7,  durationH: 5.5,  price: 545,  status: "SCHEDULED" },
-    { no: "HA407", from: "CAI", to: "FRA", dayOffset: 6, depHour: 9,  durationH: 5.5,  price: 565,  status: "SCHEDULED" },
-    { no: "HA408", from: "CAI", to: "DXB", dayOffset: 6, depHour: 14, durationH: 3.5,  price: 435,  status: "SCHEDULED" },
-    { no: "HA409", from: "CAI", to: "HRG", dayOffset: 7, depHour: 8,  durationH: 1,    price: 112,  status: "SCHEDULED" },
-    { no: "HA410", from: "CAI", to: "SSH", dayOffset: 7, depHour: 10, durationH: 1,    price: 122,  status: "SCHEDULED" },
-
-    // ── NEXT 2–4 WEEKS ─────────────────────────────────────────────────────
-    { no: "HA501", from: "CAI", to: "DXB",  dayOffset: 10, depHour: 7,  durationH: 3.5, price: 430,  status: "SCHEDULED" },
-    { no: "HA502", from: "CAI", to: "LHR",  dayOffset: 10, depHour: 9,  durationH: 6.5, price: 700,  status: "SCHEDULED", aircraftModel: "Boeing 787-9 Dreamliner" },
-    { no: "HA503", from: "CAI", to: "JFK",  dayOffset: 14, depHour: 3,  durationH: 11,  price: 970,  status: "SCHEDULED", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA504", from: "CAI", to: "NRT",  dayOffset: 14, depHour: 2,  durationH: 10,  price: 1120, status: "SCHEDULED", aircraftModel: "Boeing 777-300ER" },
-    { no: "HA505", from: "CAI", to: "CDG",  dayOffset: 17, depHour: 11, durationH: 6,   price: 600,  status: "SCHEDULED" },
-    { no: "HA506", from: "CAI", to: "AMS",  dayOffset: 17, depHour: 7,  durationH: 5.5, price: 550,  status: "SCHEDULED" },
-    { no: "HA507", from: "CAI", to: "DXB",  dayOffset: 21, depHour: 8,  durationH: 3.5, price: 440,  status: "SCHEDULED" },
-    { no: "HA508", from: "CAI", to: "RUH",  dayOffset: 21, depHour: 9,  durationH: 2.5, price: 385,  status: "SCHEDULED" },
-    { no: "HA509", from: "CAI", to: "IST",  dayOffset: 28, depHour: 6,  durationH: 3,   price: 320,  status: "SCHEDULED" },
-    { no: "HA510", from: "CAI", to: "ATH",  dayOffset: 28, depHour: 10, durationH: 2.5, price: 315,  status: "SCHEDULED" },
+    ...past,
+    ...future,
   ];
 }
 
@@ -444,8 +449,15 @@ async function main() {
   // ─── 6. Passengers & Reservations ─────────────────────────────────────────
   console.log("🎫 Seeding passengers & reservations…");
 
+  const reservationsData: any[] = [];
+  const paymentsData: any[] = [];
+  const baggagesData: any[] = [];
+  const passengersData: any[] = [];
+
   let passengerIdx = 0;
   let reservationCount = 0;
+  let baggageCounter = 1;
+  let paymentCounter = 1;
 
   // Passengers created so far (to avoid duplicate email)
   const passengerEmailMap = new Map<string, string>(); // email → passengerId
@@ -473,21 +485,22 @@ async function main() {
       1 + Math.floor(Math.random() * 28)
     );
 
-    const p = await prisma.passenger.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        phone: `+2010${Math.floor(10000000 + Math.random() * 89999999)}`,
-        gender: Math.random() > 0.5 ? "MALE" : "FEMALE",
-        dateOfBirth: dob,
-        passportNum: `${nationality.substring(0, 2).toUpperCase()}${Math.floor(10000000 + Math.random() * 89999999)}`,
-        nationality,
-        clerkUserId: overrides.clerkUserId ?? null,
-      },
-    });
-    passengerEmailMap.set(email, p.passengerId);
-    return p.passengerId;
+    const passengerId = randomUUID();
+    const p = {
+      passengerId,
+      firstName,
+      lastName,
+      email,
+      phone: `+2010${Math.floor(10000000 + Math.random() * 89999999)}`,
+      gender: Math.random() > 0.5 ? "MALE" : "FEMALE",
+      dateOfBirth: dob,
+      passportNum: `${nationality.substring(0, 2).toUpperCase()}${Math.floor(10000000 + Math.random() * 89999999)}`,
+      nationality,
+      clerkUserId: overrides.clerkUserId ?? null,
+    };
+    passengersData.push(p);
+    passengerEmailMap.set(email, passengerId);
+    return passengerId;
   }
 
   // Tracks used (flightId, seatId) to avoid re-booking same seat on same flight
@@ -518,28 +531,30 @@ async function main() {
     boardingGroup?: string | null;
     specialReq?: string;
     basePrice: number;
+    paymentDate?: Date;
   }) {
-    const { clerkUserId, passengerId, flight, seat, status, checkInStatus, boardingGroup, specialReq, basePrice } = opts;
-    const seatExtraPrice = 0; // We don't query extraPrice here for simplicity
+    const { clerkUserId, passengerId, flight, seat, status, checkInStatus, boardingGroup, specialReq, basePrice, paymentDate } = opts;
+    const seatExtraPrice = seat?.class === "FIRST" ? 300 : seat?.class === "BUSINESS" ? 120 : 0;
     const totalAmount = basePrice + seatExtraPrice;
 
     const ref = bookingRef();
-    const res = await prisma.reservation.create({
-      data: {
-        bookingRef: ref,
-        clerkUserId,
-        passengerId,
-        flightId: flight.flightId,
-        scheduleId: flight.scheduleId,
-        seatId: seat?.seatId ?? null,
-        travelClass: seat?.class ?? "ECONOMY",
-        totalAmount,
-        status,
-        specialReq: specialReq ?? null,
-        checkInStatus: checkInStatus ?? "NOT_CHECKED_IN",
-        boardingGroup: boardingGroup ?? null,
-      },
-    });
+    const resId = randomUUID();
+    const res = {
+      reservationId: resId,
+      bookingRef: ref,
+      clerkUserId,
+      passengerId,
+      flightId: flight.flightId,
+      scheduleId: flight.scheduleId,
+      seatId: seat?.seatId ?? null,
+      travelClass: seat?.class ?? "ECONOMY",
+      totalAmount,
+      status,
+      specialReq: specialReq ?? null,
+      checkInStatus: checkInStatus ?? "NOT_CHECKED_IN",
+      boardingGroup: boardingGroup ?? null,
+    };
+    reservationsData.push(res);
 
     if (seat) {
       usedSeats.add(`${flight.flightId}::${seat.seatId}`);
@@ -547,28 +562,29 @@ async function main() {
 
     // Create payment for confirmed/completed
     if (status === "CONFIRMED" || status === "COMPLETED") {
-      await prisma.payment.create({
-        data: {
-          reservationId: res.reservationId,
-          amount: totalAmount,
-          paymentMethod: rand(["CREDIT_CARD", "DEBIT_CARD", "ONLINE", "BANK_TRANSFER"] as const) as PaymentMethod,
-          status: "COMPLETED" as PaymentStatus,
-          transactRef: `TXN${Math.floor(Math.random() * 1e10).toString().padStart(10, "0")}`,
-        },
+      const pDate = paymentDate ?? new Date();
+      paymentsData.push({
+        paymentId: randomUUID(),
+        reservationId: resId,
+        amount: totalAmount,
+        paymentMethod: rand(["CREDIT_CARD", "DEBIT_CARD", "ONLINE", "BANK_TRANSFER"] as const) as PaymentMethod,
+        status: "COMPLETED" as PaymentStatus,
+        transactRef: `TXN${String(paymentCounter++).padStart(10, "0")}`,
+        paymentDate: pDate,
+        createdAt: pDate,
       });
     }
 
     // Add baggage for 60% of confirmed passengers
     if ((status === "CONFIRMED" || status === "COMPLETED") && Math.random() < 0.6) {
-      await prisma.baggage.create({
-        data: {
-          reservationId: res.reservationId,
-          baggageType: Math.random() < 0.2 ? ("CARRY_ON" as BaggageType) : ("CHECKED" as BaggageType),
-          weightKg: +(15 + Math.random() * 18).toFixed(1),
-          status: (status === "COMPLETED" ? "DELIVERED" : "CHECKED_IN") as BaggageStatus,
-          tag: `BG${Math.floor(Math.random() * 1e8).toString().padStart(8, "0")}`,
-          fee: Math.random() < 0.3 ? +(Math.floor(Math.random() * 80) + 20) : 0,
-        },
+      baggagesData.push({
+        baggageId: randomUUID(),
+        reservationId: resId,
+        baggageType: Math.random() < 0.2 ? ("CARRY_ON" as BaggageType) : ("CHECKED" as BaggageType),
+        weightKg: +(15 + Math.random() * 18).toFixed(1),
+        status: (status === "COMPLETED" ? "DELIVERED" : "CHECKED_IN") as BaggageStatus,
+        tag: `BG${String(baggageCounter++).padStart(8, "0")}`,
+        fee: Math.random() < 0.3 ? +(Math.floor(Math.random() * 80) + 20) : 0,
       });
     }
 
@@ -658,29 +674,31 @@ async function main() {
   );
 
   for (const flight of flightsToFill) {
-    const allSeats = getAvailableSeats(flight, flight.seats.length);
-    const fillCount = Math.floor(allSeats.length * (0.35 + Math.random() * 0.45));
-    const toFill = allSeats.slice(0, fillCount);
+    // Fill FIRST seats (target ~20% of booked), then BUSINESS (~30%), then ECONOMY (~50%)
+    const firstSeats  = getAvailableSeats(flight, flight.seats.length, "FIRST");
+    const bizSeats    = getAvailableSeats(flight, flight.seats.length, "BUSINESS");
+    const econSeats   = getAvailableSeats(flight, flight.seats.length, "ECONOMY");
+    const fillRate    = 0.4 + Math.random() * 0.4;
+    const toFill = [
+      ...firstSeats.slice(0, Math.ceil(firstSeats.length * fillRate)),
+      ...bizSeats.slice(0,   Math.ceil(bizSeats.length  * fillRate)),
+      ...econSeats.slice(0,  Math.ceil(econSeats.length * fillRate)),
+    ];
+
+    const isPast = flight.status === "ARRIVED" || flight.status === "DEPARTED";
+    const flightDate = new Date(flight.schedDeparture);
 
     let i = 0;
     while (i < toFill.length) {
       const groupSize = Math.min(1 + Math.floor(Math.random() * 3), toFill.length - i);
       const group = toFill.slice(i, i + groupSize);
-
       const clerkUserId = DEMO_CLERK_IDS[1 + Math.floor(Math.random() * (DEMO_CLERK_IDS.length - 1))];
-      const paxFirst = rand(FIRST_NAMES);
-      const paxLast = rand(LAST_NAMES);
-      // No clerkUserId for bulk passengers — only demo user has one (unique constraint)
-      const paxId = await getOrCreatePassenger({ firstName: paxFirst, lastName: paxLast });
-
-      const isArrived = flight.status === "ARRIVED" || flight.status === "DEPARTED";
-      const status: ReservationStatus = isArrived ? "COMPLETED" : "CONFIRMED";
+      const paxId = await getOrCreatePassenger({ firstName: rand(FIRST_NAMES), lastName: rand(LAST_NAMES) });
+      const status: ReservationStatus = isPast ? "COMPLETED" : "CONFIRMED";
       const checkIn: CheckInStatus =
         flight.status === "ARRIVED" || flight.status === "BOARDING"
           ? "CHECKED_IN"
-          : Math.random() < 0.5
-          ? "CHECKED_IN"
-          : "NOT_CHECKED_IN";
+          : Math.random() < 0.55 ? "CHECKED_IN" : "NOT_CHECKED_IN";
 
       for (const seat of group) {
         await createReservation({
@@ -692,6 +710,7 @@ async function main() {
           checkInStatus: checkIn,
           boardingGroup: checkIn === "CHECKED_IN" ? rand(["A", "B", "C", "D"] as const) : null,
           basePrice: Number(flight.basePrice ?? 400),
+          paymentDate: flightDate,
         });
       }
       i += groupSize;
@@ -735,6 +754,24 @@ async function main() {
       }
       i += groupSize;
     }
+  }
+
+  // ─── Batch Inserts ─────────────────────────────────────────────────────────────
+  console.log(`   📦 Batch inserting ${passengersData.length} passengers...`);
+  const CHUNK_SIZE = 5000;
+  for (let i = 0; i < passengersData.length; i += CHUNK_SIZE) {
+    await prisma.passenger.createMany({ data: passengersData.slice(i, i + CHUNK_SIZE) });
+  }
+  
+  console.log(`   📦 Batch inserting ${reservationsData.length} reservations...`);
+  for (let i = 0; i < reservationsData.length; i += CHUNK_SIZE) {
+    await prisma.reservation.createMany({ data: reservationsData.slice(i, i + CHUNK_SIZE) });
+  }
+  for (let i = 0; i < paymentsData.length; i += CHUNK_SIZE) {
+    await prisma.payment.createMany({ data: paymentsData.slice(i, i + CHUNK_SIZE) });
+  }
+  for (let i = 0; i < baggagesData.length; i += CHUNK_SIZE) {
+    await prisma.baggage.createMany({ data: baggagesData.slice(i, i + CHUNK_SIZE) });
   }
 
   // ─── Summary ─────────────────────────────────────────────────────────────────

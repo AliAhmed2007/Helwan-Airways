@@ -38,7 +38,7 @@ type ScheduleWithFlight = {
       firstClassSeats: number;
       businessSeats: number;
       economySeats: number;
-      seats: { seatId: string; class: string; seatNumber: string; extraPrice: string | number; reservations: { reservationId: string }[] }[];
+      seats: { seatId: string; class: string; seatNumber: string; extraPrice: string | number; reservations: { reservationId: string; scheduleId: string }[] }[];
     };
   };
 };
@@ -179,7 +179,7 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
       result = result.filter((s) => {
         const seats = s.flight.aircraft.seats;
         return filters.classes.some((cls) =>
-          seats.some((seat) => seat.class === cls && seat.reservations.length === 0)
+          seats.some((seat) => seat.class === cls && !seat.reservations.some(r => r.scheduleId === s.scheduleId))
         );
       });
     }
@@ -190,7 +190,7 @@ export function FlightsClient({ schedules }: FlightsClientProps) {
 
     if (filters.selectableOnly) {
       result = result.filter((s) => {
-        const availableSeats = s.flight.aircraft.seats.filter((seat) => seat.reservations.length === 0).length;
+        const availableSeats = s.flight.aircraft.seats.filter((seat) => !seat.reservations.some(r => r.scheduleId === s.scheduleId)).length;
         return availableSeats >= passengers;
       });
     }

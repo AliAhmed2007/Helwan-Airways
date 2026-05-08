@@ -61,7 +61,7 @@ export async function searchFlights(input: FlightSearchValues) {
                   class: true,
                   seatNumber: true,
                   extraPrice: true,
-                  reservations: { select: { reservationId: true } },
+                  reservations: { select: { reservationId: true, scheduleId: true } },
                 },
               },
             },
@@ -105,7 +105,7 @@ export async function getAllPublicFlights() {
                   class: true,
                   seatNumber: true,
                   extraPrice: true,
-                  reservations: { select: { reservationId: true } },
+                  reservations: { select: { reservationId: true, scheduleId: true } },
                 },
               },
             },
@@ -135,7 +135,7 @@ export async function getFlightById(flightId: string) {
             include: {
               reservations: {
                 where: { status: { not: "CANCELLED" } },
-                select: { reservationId: true, flightId: true },
+                select: { reservationId: true, flightId: true, scheduleId: true },
               },
             },
           },
