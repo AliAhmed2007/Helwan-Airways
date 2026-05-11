@@ -1,72 +1,114 @@
-✈️ AeroBook: Modern Airline Flight & Reservation System
+<div align="center">
+  <h1>✈️ Helwan Airways</h1>
+  <p><strong>A modern, premium airline reservation and management system built with Next.js</strong></p>
+</div>
 
-A production-grade, full-stack Next.js application for airline flight management and passenger ticketing. Built with a focus on clean architecture and a premium, minimalist (Apple-inspired) user experience.
+<br />
 
-This system provides a comprehensive three-sided portal serving Customers, Operations Staff, and System Administrators, handling everything from multi-passenger bookings to real-time flight dispatching.
-✨ Core Features
-🛂 Customer Portal (/customer)
+<div align="center">
+  <img src="https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white" alt="Clerk Auth" />
+  <img src="https://img.shields.io/badge/React_Hook_Form-%23EC5990.svg?style=for-the-badge&logo=reacthookform&logoColor=white" alt="React Hook Form" />
+</div>
 
-    Dynamic Flight Search: Query flights by departure/arrival hubs and dates.
+<br />
 
-    Complex Booking Flow: Multi-step wizard supporting simultaneous multi-passenger ticketing.
+## ✨ Features
 
-    Interactive Seat Selection: Visual aircraft mapping to select available seats.
+- **Passenger Portal**:
+  - **Flight Search**: Dynamic search with origin, destination, dates, and flexible filtering.
+  - **Seat Selection**: Visual, interactive seat mapping to choose the perfect spot.
+  - **Reservations**: Streamlined, secure booking flow with passenger data validation.
+  - **User Dashboard**: Track upcoming trips and view flight history in a personal dashboard.
 
-    Passenger Dashboard: Manage upcoming trips and access digital boarding passes.
+- **Staff Administration Dashboard**:
+  - **KPIs & Analytics**: High-level visibility into system performance with analytics cards.
+  - **Flights Management**: CRUD operations for flights, schedules, and statuses.
+  - **Passenger & Reservation Management**: Comprehensive directory for managing users and bookings.
+  - **Fleet & Infrastructure**: Manage aircraft, seating capacities, airports, and baggage.
 
-🏢 Operations Dashboard (/staff)
+- **Authentication & Security**:
+  - Secure authentication flow powered by **Clerk**.
+  - Robust **Role-Based Access Control (RBAC)** separating "Passenger" and "Staff" privileges.
 
-    Real-Time Analytics: Visualize daily revenue, occupancy rates, and operational bottlenecks.
+- **Premium UI/UX**:
+  - Clean, minimal, Apple-inspired design aesthetic using **Shadcn UI**.
+  - Buttery smooth micro-animations powered by **Framer Motion**.
+  - Strict type safety and client-side form validation via **Zod**.
 
-    Flight Dispatch & Status: Update flight statuses (Scheduled, Boarding, Delayed, Departed) seamlessly.
+---
 
-    Passenger Manifests: Manage gate check-ins, verify documentation, and process baggage weights.
+## 🗺️ Pages & Navigation
 
-🛠️ Tech Stack & Architecture
+### 👤 Passenger Portal
+| Page | Description |
+| :--- | :--- |
+| **Home** | Global flight search widget and dynamically featured destinations. |
+| **Search Results** | Browse available flights with advanced filtering (price, time, stops). |
+| **Booking Flow** | Step-by-step wizard for passenger details, seat selection, and checkout. |
+| **My Trips** | Passenger dashboard showing past journeys and upcoming reservations. |
 
-This project leverages the modern React ecosystem with strict end-to-end type safety:
+### 👨‍💼 Staff Administration
+| Page | Description |
+| :--- | :--- |
+| **Overview Dashboard** | Central hub displaying critical daily metrics and analytics. |
+| **Manage Flights** | Data tables to view, add, edit, or cancel flight schedules. |
+| **Manage Passengers** | Directory of registered users and their details. |
+| **Manage Reservations** | Oversight of all system bookings and payment statuses. |
+| **Manage Fleet/Airports**| Configuration of aircraft types, capacities, and airport locations. |
 
-    Framework: Next.js 14+ (App Router, Server Actions, Server Components)
+---
 
-    Language: TypeScript
+## 📸 Screenshots
 
-    Database: MySQL (Relational architecture for robust data integrity)
+### Passenger Experience
 
-    Authentication: Clerk (Role-Based Access Control for Customers vs. Staff)
+<div align="center">
+  <img src="docs/screenshots/home-page-placeholder.png" alt="Home Page Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <p><em>Home Page with Flight Search Widget</em></p>
+</div>
 
-    Styling: Tailwind CSS + Shadcn UI (Monochromatic, high-contrast, ample whitespace)
+<div align="center">
+  <img src="docs/screenshots/flight-search-placeholder.png" alt="Flight Search Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <p><em>Flight Search Results and Filtering</em></p>
+</div>
 
-    State & Validation: React Hook Form heavily integrated with Zod schemas
+<div align="center">
+  <img src="docs/screenshots/booking-flow-placeholder.png" alt="Booking Flow Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <p><em>Interactive Seat Selection & Booking</em></p>
+</div>
 
-    Data Visualization: Recharts
+### Staff Administration
 
-    Animations: Framer Motion (Smooth, native-feeling micro-interactions)
+<div align="center">
+  <img src="docs/screenshots/admin-dashboard-placeholder.png" alt="Admin Dashboard Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <p><em>Staff Analytics and KPI Dashboard</em></p>
+</div>
 
-🚀 Getting Started
-Prerequisites
+<div align="center">
+  <img src="docs/screenshots/manage-flights-placeholder.png" alt="Manage Flights Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <p><em>Flight Management Data Table</em></p>
+</div>
 
-    Node.js 18+
+---
 
-    A running MySQL instance
+## 🛠️ Architecture & Services
 
-    A  account for authentication
+- **Frontend**: Next.js (App Router), React, Server Components
+- **Backend**: Next.js Server Actions (No traditional API routes, maximizing performance)
+- **Database**: Prisma ORM mapping to relational database
+- **Authentication**: Clerk (with RBAC metadata)
+- **Form Validation**: React Hook Form seamlessly integrated with Zod
+- **UI Components**: Radix UI primitives styled with Tailwind CSS (Shadcn UI approach)
+- **Animations**: Framer Motion
 
-Installation
+## 🚀 Getting Started
 
-    Clone the repository
-
-    Install dependencies
-
-    Environment Setup
-    Create a .env.local file in the root directory and add your keys:
-
-    Initialize the Database
-    Run the provided SQL seed scripts located in the /prisma or /db folder to populate the independent infrastructure (Airports, Aircrafts).
-
-    Start the Development Server
-
-    Navigate to http://localhost:3000 to view the application.
-
-📐 Design Philosophy
-
-The UI is strictly engineered to feel native and premium. We prioritize stark contrast, soft border radii, and generous whitespace over heavy drop shadows and borders. All data mutations provide immediate feedback via toast notifications and optimistic UI updates.
+1. **Clone the repository**
+2. **Install dependencies**: `npm install`
+3. **Configure environment variables**: Set up your `.env.local` with Clerk keys, Database URLs, etc.
+4. **Run database migrations**: `npx prisma db push` (and run the seeder if available)
+5. **Start development server**: `npm run dev`
