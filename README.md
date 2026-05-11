@@ -64,21 +64,63 @@
 
 ## 📸 Screenshots
 
+
+### Auth Pages
+<div align="center">
+  <p><em>Login page for passengers</em></p>
+  <img width="1917" height="910" alt="image" src="https://github.com/user-attachments/assets/0590a724-a206-4a0a-a5d6-e0a75478bb38" />
+  <br>
+  <p><em>Register page for passengers</em></p>
+  <img width="1917" height="909" alt="image" src="https://github.com/user-attachments/assets/7ce98182-9bda-431c-93ea-b7ae2fc15301" />
+  <br>
+  <p><em>Login Page for staff users</em></p>
+  <img width="1919" height="905" alt="image" src="https://github.com/user-attachments/assets/9fbef0b6-8a86-41a1-aa7c-9440acce1688" />
+
+</div>
+
 ### Passenger Experience
 
 <div align="center">
-  <img src="docs/screenshots/home-page-placeholder.png" alt="Home Page Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
   <p><em>Home Page with Flight Search Widget</em></p>
+  <img width="1915" height="906" alt="image" src="https://github.com/user-attachments/assets/1c296afb-7efe-49ee-b767-83a12a13ddfc" />
+  <br>
+  <p><em>Solid Searchbar with today's flights from the user origin</em></p>
+  <img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/71dd7f47-be19-487a-abcd-e991c528e845" />
 </div>
 
 <div align="center">
-  <img src="docs/screenshots/flight-search-placeholder.png" alt="Flight Search Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <br>
+  <p><em>Big Achievements and Feataured destinations section</em></p>
+  <img width="1916" height="1073" alt="image" src="https://github.com/user-attachments/assets/bde52062-d48f-45fb-aa1b-4ebaedfd7af3" />
+</div>
+
+<div align="center">
+  <br>
   <p><em>Flight Search Results and Filtering</em></p>
+  <img width="1918" height="862" alt="image" src="https://github.com/user-attachments/assets/30b88a8b-2a3a-4ca3-8fbd-0fafb2e009ed" />
+  <br>
+  <img width="1919" height="1069" alt="image" src="https://github.com/user-attachments/assets/df036855-2efe-4c73-969f-a505916ec332" />
 </div>
 
 <div align="center">
-  <img src="docs/screenshots/booking-flow-placeholder.png" alt="Booking Flow Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
+  <br>
   <p><em>Interactive Seat Selection & Booking</em></p>
+  <img width="1913" height="1074" alt="image" src="https://github.com/user-attachments/assets/ab6e6e12-c2ff-4215-9ab4-ab4f86d91bab" />
+  <br>
+  <img width="1901" height="2786" alt="image" src="https://github.com/user-attachments/assets/0a9114d6-0b17-4fc2-8eca-f08141ff636d" />
+  <br>
+  <img width="1890" height="1534" alt="image" src="https://github.com/user-attachments/assets/a75087bf-fd76-4552-a52f-d25890afc6ba" />
+</div>
+
+<div align="center">
+  <br>
+  <p><em>Trips and Booking Management</em></p>
+  <img width="1898" height="1335" alt="image" src="https://github.com/user-attachments/assets/d938b5d5-0b4e-426b-bf58-1688ac79d7ed" />
+  <br>
+  <img width="1896" height="1932" alt="image" src="https://github.com/user-attachments/assets/5241c863-728c-4e02-aae3-6ead90494b99" />
+  <br>
+  <img width="1919" height="596" alt="image" src="https://github.com/user-attachments/assets/d28dccaa-33b5-4b0d-a6df-abf4b68ee6c0" />
+
 </div>
 
 ### Staff Administration
