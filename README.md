@@ -126,13 +126,32 @@
 ### Staff Administration
 
 <div align="center">
-  <img src="docs/screenshots/admin-dashboard-placeholder.png" alt="Admin Dashboard Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
   <p><em>Staff Analytics and KPI Dashboard</em></p>
+  <img width="1913" height="911" alt="image" src="https://github.com/user-attachments/assets/447bb3bd-dc65-498f-8e02-26cced1a0599" />
+  <br>
+  <img width="1900" height="906" alt="image" src="https://github.com/user-attachments/assets/3b285afa-e7f6-4eb0-8054-df63af5b77ed" />
 </div>
 
 <div align="center">
-  <img src="docs/screenshots/manage-flights-placeholder.png" alt="Manage Flights Placeholder" width="800" style="border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;" />
-  <p><em>Flight Management Data Table</em></p>
+  <br>
+  <p><em>Flight Management Data Table and status history management</em></p>
+  <img width="1908" height="909" alt="image" src="https://github.com/user-attachments/assets/caa83dda-366d-47bd-afa6-dea68dd6859a" />
+  <br>
+  <img width="1916" height="905" alt="image" src="https://github.com/user-attachments/assets/c11cf945-0693-4f78-9f81-8d3e3647de8c" />
+</div>
+
+<h4><em>Other Features Management</em></h4>
+<div align="center">
+  <br>
+  <img width="1916" height="905" alt="image" src="https://github.com/user-attachments/assets/f0fda98a-db89-4292-8275-477d487207e3" />
+  <br>
+  <img width="1620" height="1295" alt="image" src="https://github.com/user-attachments/assets/a5fffd7c-2932-4ad1-bcca-c4ec40b7d795" />
+  <br>
+  <img width="1919" height="910" alt="image" src="https://github.com/user-attachments/assets/800921df-2876-429b-b4ba-14940ee102ea" />
+  <br>
+  <img width="1620" height="939" alt="image" src="https://github.com/user-attachments/assets/b5a65a99-9ca3-4267-aede-1e749a115c99" />
+  <br>
+  <img width="1913" height="916" alt="image" src="https://github.com/user-attachments/assets/07897d7a-2ffb-4dc7-a0e0-69e0da326b6f" />
 </div>
 
 ---
